@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.1.3
       Project Date (UTC)  : 2012-08-07T01:23:40Z
       File Modified (UTC) : 2012-08-07T01:23:40Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
@@ -19,7 +19,6 @@ local started = false
 local needsRefresh = {}
 
 -- BEGIN BUFFSET INTERFACE IMPLEMENTATION --
-
 local BuffSet_CanAccept = data.CheckBuffFilter
 
 local function BuffSet_Add(gadget, buff)
@@ -49,6 +48,7 @@ end
 
 local function BuffSet_Remove(gadget, buff)
 	gadget.buffs[buff.id] = nil
+	needsRefresh[gadget.id] = true
 end
 
 local function BuffSet_Update(gadget, buff)
@@ -58,7 +58,6 @@ end
 local function BuffSet_Done(gadget)
 	needsRefresh[gadget.id] = true
 end
-
 -- END BUFFSET INTERFACE IMPLEMENTATION --
 
 -- Calculate the remaining time on a buff, and populate additional values in the detail structure
@@ -71,31 +70,23 @@ local function CalculateRemaining(buff)
 		local elapsed = currTime - buff.begin
 		remaining = buff.duration - elapsed
 		if remaining <= 0 then
-			txt = "" 
 			remaining = 0
 			remainingPercent = 0
-		elseif remaining < 60 then
-			txt = math.floor(remaining) .. "s"
+		else 
 			remainingPercent = remaining / buff.duration
-		elseif remaining < 3600 then
-			txt = math.floor(remaining / 60) .. "m"
-			remainingPercent = remaining / buff.duration
-		elseif remaining > 3600 and remaining < 7200  then
-			txt = "1h"
-			remainingPercent = remaining / buff.duration
-		elseif remaining > 7200 and remaining < 10800  then
-			txt = "2h"
-			remainingPercent = remaining / buff.duration	
-		elseif remaining > 10800 and remaining < 14400  then
-			txt = "3h"
-			remainingPercent = remaining / buff.duration
-		elseif remaining > 14400 and remaining < 18000  then
-			txt = "4h"
-			remainingPercent = remaining / buff.duration
-		elseif remaining > 18000 and remaining < 21600  then
-			txt = "5h"
-			remainingPercent = remaining / buff.duration			
 		end
+		if remaining < 60 then
+			txt = tostring(math.floor(remaining) .. "s")
+		elseif remaining >=60 and remaining < 3600 then
+			txt = tostring(math.floor(remaining / 60) .. "m")
+		elseif remaining >= 3600 and remaining < 86400 then
+			txt = tostring(math.floor(remaining / 3600) .. "h")
+		elseif remaining >= 86400 then
+			txt = tostring(math.floor(remaining / 86400) .. "d")
+		end	
+	end
+	if remaining == 999999 and buff.sequence then
+		remaining = 999999+tonumber(buff.sequence,16)
 	end
 	buff.timerText = txt
 	buff.remaining = remaining
@@ -132,7 +123,11 @@ local function UpdateBar(gadget, bar, buff)
 	if buff.debuff then
 		bar.text:SetFontColor(unpack(gadget.config.debuffFontColour))
 		bar.textTime:SetFontColor(unpack(gadget.config.debuffFontColour))
-		bar.fill:SetBackgroundColor(unpack(gadget.config.debuffColour))				
+		if buff.curse or buff.disease or buff.poison then
+			bar.fill:SetBackgroundColor(0.65, 0,0.65,1)
+		else
+			bar.fill:SetBackgroundColor(unpack(gadget.config.debuffColour))				
+		end
 	else
 		bar.text:SetFontColor(unpack(gadget.config.buffFontColour))
 		bar.textTime:SetFontColor(unpack(gadget.config.buffFontColour))
@@ -153,35 +148,35 @@ end
 local function Refresh(gadget)
 	-- we can now rely on gadget.BuffData as populated by the Gadgets Framework to fill the panel
 	-- start by sorting into ascending order of time remaining...
-	
+
 	local currTime = Inspect.Time.Frame()
 	local configuration = gadget.config
 
-	local seconds = 0 
+	local seconds = 0
 
 	-- Do we have a time limit for buff display?
 	if gadget.config.limitRemaining then
 		seconds = tonumber(gadget.config.limitRemainingSeconds) or 0
-		if seconds > 0 then 
+		if seconds > 0 then
 			seconds = seconds + 0.99
-		end 
-	end  
+		end
+	end
 
 	-- One-time iteration to calculate the remaining time of each buff, and add all buffs to be shown to the sort list
 	local sortList = {}
 	for buffId, buff in pairs(gadget.buffs) do
 		CalculateRemaining(buff)
-		if seconds == 0 or (buff.remaining <= seconds) then
+		if seconds == 0 or (buff.remaining <= seconds) or (not buff.duration and gadget.config.showPermanentBuffs) then
 			table.insert(sortList, buff.remaining)
 		else
 			local timeBuffBecomesVisible = currTime + (buff.remaining - seconds)
 			if (not gadget.forceRefreshTime) or (gadget.forceRefreshTime > timeBuffBecomesVisible) then
 				gadget.forceRefreshTime = timeBuffBecomesVisible
-			end  
+			end
 		end
 	end
 	table.sort(sortList)
-	
+
 	-- sortList contains an entry for every buff's remaining time, in ascending order of remaining time
 	-- we can now use this list to assign a buff to each bar slot in the gadget by matching the remaining time
 	local masterList = {{},{},{},{},{},{}}
@@ -196,28 +191,28 @@ local function Refresh(gadget)
 			end
 		end
 	end
-	
+
 	sortList = {}
 	for subListIndex = 1, 6 do
 		subList = masterList[subListIndex]
 		if subList then
 			for idk = 1, #subList do
 				table.insert(sortList, subList[idk])
-				
+
 				if #sortList == configuration.maxBars then break end
 			end
-			
+
 			if #sortList == configuration.maxBars then break end
 		end
 	end
-	
+
 	-- table has a list of buffs in ascending order, reverse if we're sorting in descending order
-	-- note this is done at this point and not sooner, so that short duration buffs are still allocated bar 
+	-- note this is done at this point and not sooner, so that short duration buffs are still allocated bar
 	-- slots before long duration buffs, even if sorting descending
 	if gadget.config.sortDescending then
 		sortList = ReverseTable(sortList)
 	end
-	
+
 	-- now we need to assign each buff in the list to the correct bar slot. If growth direction is upwards,
 	-- and the gadget is not full, we have to leave the right number of empty slots
 	local totalSlots = configuration.maxBars
@@ -234,34 +229,32 @@ local function Refresh(gadget)
 		else
 			for idx = totalSlots - emptySlots, totalSlots do
 				ClearBar(gadget.bars[idx])
-			end		
+			end
 		end
 	end
-	
+
 	-- Fill the populated slots
 	for idx, buff in ipairs(sortList) do
 		UpdateBar(gadget, gadget.bars[(firstBar + idx) - 1], sortList[idx])
 	end
-
 end
-
 
 local function OnResize(gadget, width, height)
 
 	local config = gadget.config
-	
+
 	local barSpacing = config.barSpacing
 
 	-- Work out the most appropriate bar height based on the new size, and apply it
 	local totalSpacing = (config.maxBars - 1) * barSpacing
 	local newBarHeight = math.ceil((height - totalSpacing) / config.maxBars)
-	
+
 	config.barHeight = newBarHeight
-	
+
 	local fontSize = math.ceil(newBarHeight * 0.75)
-	
+
 	-- Adjust the bar heights
-	for idx, bar in ipairs(gadget.bars) do 
+	for idx, bar in ipairs(gadget.bars) do
 		bar:SetHeight(newBarHeight)
 		bar.fill:SetHeight(newBarHeight)
 		bar.icon:SetHeight(newBarHeight)
@@ -270,22 +263,18 @@ local function OnResize(gadget, width, height)
 		bar.textTime:SetFontSize(fontSize)
 		bar:SetPoint("TOPLEFT", gadget, "TOPLEFT", 0, (idx - 1) * (newBarHeight + config.barSpacing))
 	end
-	
+
 	gadget.heading:SetFontSize(fontSize)
-	
+
 	local gadgetHeight = (config.maxBars * newBarHeight) + totalSpacing
 	gadget:SetHeight(gadgetHeight)
-	
+
 	config.height = gadgetHeight
-	
 end
 
-
 local function UpdateTimers(gadget)
-
 	local currTime = Inspect.Time.Frame()
 	local configuration = gadget.config
-	
 	for idx, bar in pairs(gadget.bars) do
 		local buffId = bar.buffId
 		if buffId and gadget.buffs[buffId] then
@@ -295,35 +284,22 @@ local function UpdateTimers(gadget)
 			local txt = ""
 			if buff.duration then
 				local elapsed = currTime - buff.begin
-				remaining = math.floor(buff.duration - elapsed)
-				local remainingReal = buff.duration - elapsed
-				if remainingReal <= 0 then
-					txt = "" 
+				remaining = buff.duration - elapsed
+				if remaining <= 0 then
 					remaining = 0
 					remainingPercent = 0
-				elseif remaining < 60 then
-					txt = remaining .. "s"
-					remainingPercent = remainingReal / buff.duration
-				elseif remaining < 3600 then
-					txt = math.floor(remaining / 60) .. "m"
-					remainingPercent = remainingReal / buff.duration
-				elseif remaining > 3600 and remaining < 7200  then
-					txt = "1h"
+				else 
 					remainingPercent = remaining / buff.duration
-				elseif remaining > 7200 and remaining < 10800  then
-					txt = "2h"
-					remainingPercent = remaining / buff.duration	
-				elseif remaining > 10800 and remaining < 14400  then
-					txt = "3h"
-					remainingPercent = remaining / buff.duration
-				elseif remaining > 14400 and remaining < 18000  then
-					txt = "4h"
-					remainingPercent = remaining / buff.duration		
-				elseif remaining > 18000 and remaining < 21600  then
-					txt = "5h"
-					remainingPercent = remaining / buff.duration						
 				end
-		
+				if remaining < 60 then
+					txt = tostring(math.floor(remaining) .. "s")
+				elseif remaining >=60 and remaining < 3600 then
+					txt = tostring(math.floor(remaining / 60) .. "m")
+				elseif remaining >= 3600 and remaining < 86400 then
+					txt = tostring(math.floor(remaining / 3600) .. "h")
+				elseif remaining >= 86400 then
+					txt = tostring(math.floor(remaining / 86400) .. "d")
+				end		
 			end
 			if bar.textTime:GetText() ~= txt then 
 				buff.timerText = txt
@@ -332,19 +308,15 @@ local function UpdateTimers(gadget)
 			buff.remaining = remaining
 			buff.remainingPercent = remainingPercent
 			bar.fill:SetPoint("RIGHT", bar.fillMeasure, buff.remainingPercent or 1.0, nil)
-		end		
+		end
 	end
-
 end
 
-
 local function ConstructBar(gadget)
-
 	local bar = UI.CreateFrame("Frame", "barBackground", gadget)
-	
 	if gadget.config.border then
 		bar.border = UI.CreateFrame("Frame", "barBorder", bar)
-	
+
 		bar.border.top = UI.CreateFrame("Frame", "TopBorder", bar)
 		bar.border.top:SetBackgroundColor(0,0,0,1)
 		bar.border.top:SetLayer(1)
@@ -352,7 +324,7 @@ local function ConstructBar(gadget)
 		bar.border.top:SetPoint("BOTTOMLEFT", bar, "TOPLEFT", -1, 0)
 		bar.border.top:SetPoint("BOTTOMRIGHT", bar, "TOPRIGHT", 1, 0)
 		bar.border.top:SetHeight(1)
-				  
+
 		bar.border.bottom = UI.CreateFrame("Frame", "BottomBorder", bar)
 		bar.border.bottom:SetBackgroundColor(0,0,0,1)
 		bar.border.bottom:SetLayer(1)
@@ -360,7 +332,7 @@ local function ConstructBar(gadget)
 		bar.border.bottom:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", -1, 0)
 		bar.border.bottom:SetPoint("TOPRIGHT", bar, "BOTTOMRIGHT",1, 0)
 		bar.border.bottom:SetHeight(1)
-				  
+
 		bar.border.left = UI.CreateFrame("Frame", "LeftBorder", bar)
 		bar.border.left:SetBackgroundColor(0,0,0,1)
 		bar.border.left:SetLayer(1)
@@ -368,7 +340,7 @@ local function ConstructBar(gadget)
 		bar.border.left:SetPoint("TOPRIGHT", bar, "TOPLEFT", 0, -1)
 		bar.border.left:SetPoint("BOTTOMRIGHT", bar, "BOTTOMLEFT", 0, 1)
 		bar.border.left:SetWidth(1)
-				  
+
 		bar.border.right = UI.CreateFrame("Frame", "RightBorder", bar)
 		bar.border.right:SetBackgroundColor(0,0,0,1)
 		bar.border.right:SetLayer(1)
@@ -377,7 +349,7 @@ local function ConstructBar(gadget)
 		bar.border.right:SetPoint("BOTTOMLEFT", bar, "BOTTOMRIGHT", 0, 1)
 		bar.border.right:SetWidth(1)
 	end
-	
+
 	bar.fillMeasure = UI.CreateFrame("Frame", "barFillBackground", bar)
 	bar.fillMeasure:SetPoint("TOPLEFT", bar, "TOPLEFT", gadget.config.barHeight, 0)
 	bar.fillMeasure:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT")
@@ -385,18 +357,17 @@ local function ConstructBar(gadget)
 
 	bar.fill = UI.CreateFrame("Frame", "barFill", bar)
 	bar.fill:SetPoint("TOPLEFT", bar, "TOPLEFT")
-	
+
 	bar.icon = UI.CreateFrame("Texture", "barIcon", bar)
 	bar.icon:SetPoint("TOPLEFT", bar, "TOPLEFT")
 	bar.icon:SetLayer(10)
-	
+
 	bar.text = UI.CreateFrame("Text", "barText", bar)
 	bar.text:SetPoint("CENTERLEFT", bar.icon, "CENTERRIGHT", 0, 0)
 	bar.text:SetLayer(10)
 	bar.text:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 	bar.text:SetFontColor(1,0.97,0.84,1)
 	bar.text:SetFontSize(14)
-	--bar.text:SetFont(AddonId, "blank-Bold")
 
 	bar.textTime = UI.CreateFrame("Text", "barTextTime", bar)
 	bar.textTime:SetPoint("CENTERRIGHT", bar, "CENTERRIGHT", -4, 0)
@@ -404,31 +375,30 @@ local function ConstructBar(gadget)
 	bar.textTime:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 	bar.textTime:SetFontColor(1,0.97,0.84,1)
 	bar.textTime:SetFontSize(14)
-	--bar.textTime:SetFont(AddonId, "blank-Bold")
 
 	bar.text:SetPoint("RIGHT", bar.textTime, "LEFT", -8, nil)
-	
+
 	bar.ghost = UI.CreateFrame("Frame", "ghost", gadget.ghosts)
 	bar.ghost:SetBackgroundColor(0,0,0,0.4)
 	bar.ghost:SetAllPoints(bar)
-	
+
 	if gadget.config.outline then
 		bar.text:SetEffectGlow({  colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3,}) -- text outline
 		bar.textTime:SetEffectGlow({  colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, }) -- text outline
 	end
-	
-	bar.Event.MouseIn = 
+
+	bar.Event.MouseIn =
 		function()
 			if gadget.config.tooltips then
 				data.ShowBuffTooltip(gadget.UnitSpec, bar.buffId)
 			end
 		end
 
-	bar.Event.MouseOut = 
+	bar.Event.MouseOut =
 		function()
 			data.HideBuffTooltip(bar.buffId)
 		end
-	
+
 	bar.Event.RightDown =
 		function()
 			-- only try if it's the player we're looking at
@@ -471,7 +441,6 @@ function WT.Gadget.ConfigureBuffBars(configuration)
 		gadget.heading:SetVisible(false)
 		gadget.heading:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 		gadget.heading:SetFontColor(1,0.97,0.84,1)
-		--gadget.heading:SetFont(AddonId, "blank-Bold")
 		gadget.heading:SetFontSize(14)
 
 		gadget.bars = {}
@@ -486,7 +455,7 @@ function WT.Gadget.ConfigureBuffBars(configuration)
 		gadget.Update = BuffSet_Update
 		gadget.Done = BuffSet_Done
 		gadget:RegisterBuffSet(gadget)
-		
+
 		gadget.OnResize = OnResize
 	else
 		-- Clear out any existing bindings
@@ -494,18 +463,17 @@ function WT.Gadget.ConfigureBuffBars(configuration)
 		-- Set the unit tracker to the correct unit
 		gadget:TrackUnit(configuration.unitSpec)
 	end
-		
+
 	gadget.config = configuration
-		
-	configuration.barHeight = configuration.barHeight or 14 -- default the barHeight 
-	local gadgetHeight = (configuration.maxBars * configuration.barHeight) + ((configuration.maxBars - 1) * configuration.barSpacing) 
+
+	configuration.barHeight = configuration.barHeight or 14 -- default the barHeight
+	local gadgetHeight = (configuration.maxBars * configuration.barHeight) + ((configuration.maxBars - 1) * configuration.barSpacing)
 
 	local nextElementOffset = 0
-	
+
 	-- Configure: Heading
 	if configuration.heading and (configuration.heading ~= "") then
-		gadget:CreateTokenBinding(configuration.heading, gadget.heading, gadget.heading.SetText, "") 
-		--gadget.heading:SetText(configuration.heading)
+		gadget:CreateTokenBinding(configuration.heading, gadget.heading, gadget.heading.SetText, "")
 		gadget.heading:SetFontColor(unpack(configuration.headingFontColour))
 		gadget.heading:ClearAll()
 		if configuration.grow == "up" then
@@ -517,15 +485,15 @@ function WT.Gadget.ConfigureBuffBars(configuration)
 	else
 		gadget.heading:SetVisible(false)
 	end
-	
+
 	-- Ensure there are enough bar elements available to display the max number of bars
-	while #gadget.bars < configuration.maxBars do	
-		table.insert(gadget.bars, ConstructBar(gadget))		
+	while #gadget.bars < configuration.maxBars do
+		table.insert(gadget.bars, ConstructBar(gadget))
 	end
-	
-	-- Hide all bars and set their position (including any extra bars that are no longer needed) 
+
+	-- Hide all bars and set their position (including any extra bars that are no longer needed)
 	for idx, bar in ipairs(gadget.bars) do
-		bar:SetVisible(false)		
+		bar:SetVisible(false)
 		bar:ClearAll()
 		bar:SetPoint("TOPLEFT", gadget, "TOPLEFT", 0, nextElementOffset)
 		bar:SetPoint("RIGHT", gadget, "RIGHT")
@@ -544,16 +512,14 @@ function WT.Gadget.ConfigureBuffBars(configuration)
 		bar.textTime:SetFontColor(1,0.97,0.84,1)
 		--bar.textTime:SetFont(AddonId, "blank-Bold")
 		bar.textTime:SetFontSize(14)
-		
 		if idx <= configuration.maxBars then
 			bar.ghost:SetVisible(true)
 		else
 			bar.ghost:SetVisible(false)
 		end
-		
 		nextElementOffset = nextElementOffset + configuration.barHeight + configuration.barSpacing
 	end
-	
+
 	gadget:SetWidth(configuration.width or 200)
 	gadget:SetHeight(gadgetHeight)
 
@@ -576,20 +542,30 @@ function WT.Gadget.ConfigureBuffBars(configuration)
 	
 end
 
-
-local function OnUpdateBegin(hEvent)
-	
-	local currTime = Inspect.Time.Frame()
-	
+local lastbBarRefreshTime = Inspect.Time.Real() - 1
+local bBarRefreshTimeThrottle = 0.1
+local function BuffBarsRendererWorker() 
+	WT.WatchdogSleep()
+	if (lastbBarRefreshTime and ((Inspect.Time.Real() - lastbBarRefreshTime) < bBarRefreshTimeThrottle)) then
+		return
+	end
+	lastbBarRefreshTime = Inspect.Time.Real()
+	local jobs = {}
 	for gadgetId, gadget in pairs(buffBars) do
-		if needsRefresh[gadgetId] or (gadget.forceRefreshTime and (gadget.forceRefreshTime <= currTime)) then
-			Refresh(gadget)
+		if needsRefresh[gadgetId] or (gadget.forceRefreshTime and (gadget.forceRefreshTime <= lastbBarRefreshTime)) then
+			jobs[gadgetId] = coroutine.create(Refresh)
+			coroutine.resume(jobs[gadgetId],gadget)
+			needsRefresh[gadgetId] = false
+			--Refresh(gadget)
 		else
-			UpdateTimers(gadget)
+			jobs[gadgetId] = coroutine.create(UpdateTimers)
+			coroutine.resume(jobs[gadgetId],gadget)
+			--UpdateTimers(gadget)
 		end
 	end
-	needsRefresh = {}
-	
+end
+local function OnUpdateBegin(hEvent)
+	WT.runProcess(BuffBarsRendererWorker)
 end
 
 
@@ -609,7 +585,7 @@ end
 -- registration until it's needed
 function data.wtBuffBars_StartUp()
 	-- Register for event handlers
-	Command.Event.Attach(Event.System.Update.Begin, OnUpdateBegin, "UpdateBegin")
+	Command.Event.Attach(WT.Event.Tick, OnUpdateBegin, "BuffBars_UpdateBegin")
 	table.insert(WT.Event.GadgetsUnlocked, { OnUnlocked, AddonId, "BuffBars_OnUnlocked" })
 	table.insert(WT.Event.GadgetsLocked, { OnLocked, AddonId, "BuffBars_OnLocked" })
 	started = true

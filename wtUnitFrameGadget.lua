@@ -2,21 +2,19 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.5.4
       Project Date (UTC)  : 2013-10-06T09:26:25Z
       File Modified (UTC) : 2013-10-06T09:26:25Z (lifeismystery)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
 local AddonId = toc.identifier
 local TXT = Library.Translate
 
-
 local controls = {}
-
 local ufDialog = false
 local ufAppearance = false
 
@@ -28,43 +26,42 @@ local function uf_OnTemplateChange(templateId)
 	else
 		ufDialog:GetControl("ownBuffs"):SetVisible(false)
 	end
-	
+
 	local templateConfig = WT.UnitFrame.Templates[templateId].Configuration
 	if templateConfig.SupportsOwnDebuffsPanel then
 		ufDialog:GetControl("ownDebuffs"):SetVisible(true)
 	else
 		ufDialog:GetControl("ownDebuffs"):SetVisible(false)
-	end	
-	
+	end
+
 	local templateConfig = WT.UnitFrame.Templates[templateId].Configuration
 	if templateConfig.SupportsExcludeBuffsPanel then
 		ufDialog:GetControl("excludeBuffs"):SetVisible(true)
 	else
 		ufDialog:GetControl("excludeBuffs"):SetVisible(false)
-	end	
-	
+	end
+
 	local templateConfig = WT.UnitFrame.Templates[templateId].Configuration
 	if templateConfig.SupportsExcludeCastsPanel then
 		ufDialog:GetControl("excludeCasts"):SetVisible(true)
 	else
 		ufDialog:GetControl("excludeCasts"):SetVisible(false)
-	end	
-	
+	end
+
 	local templateConfig = WT.UnitFrame.Templates[templateId].Configuration
 	if templateConfig.SupportsShowRadius then
 		ufDialog:GetControl("showRadius"):SetVisible(true)
 	else
 		ufDialog:GetControl("showRadius"):SetVisible(false)
-	end	
-	
+	end
+
 	local templateConfig = WT.UnitFrame.Templates[templateId].Configuration
 	if templateConfig.SupportsShowCombo then
 		ufDialog:GetControl("showCombo"):SetVisible(true)
 	else
 		ufDialog:GetControl("showCombo"):SetVisible(false)
-	end	
-	
-	
+	end
+
 	local templateConfig = WT.UnitFrame.Templates[templateId].Configuration
 	if templateConfig.SupportsShowRankIconPanel then
 		ufDialog:GetControl("showRankIcon"):SetVisible(true)
@@ -74,7 +71,6 @@ local function uf_OnTemplateChange(templateId)
 end
 
 local function ufConfigDialog(container)
-
 	local templateListItems = {}
 	for templateId, template in pairs(WT.UnitFrame.Templates) do
 		if template.Configuration.UnitSuitable then
@@ -85,12 +81,12 @@ local function ufConfigDialog(container)
 	local ufTabs = UI.CreateFrame("SimpleLifeTabView", "ufTabs", container)
 	ufTabs:SetPoint("TOPLEFT", container, "TOPLEFT")
 	ufTabs:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", 0, -32)
-	
+
 	local frmConfig = UI.CreateFrame("Frame", "ufConfig", ufTabs.tabContent)
 	local frmConfigInner = UI.CreateFrame("Frame", "ufConfigInner", frmConfig)
 	frmConfigInner:SetPoint("TOPLEFT", frmConfig, "TOPLEFT", 12, 12)
 	frmConfigInner:SetPoint("BOTTOMRIGHT", frmConfig, "BOTTOMRIGHT", -12, -12)
-	
+
 	local frmOverride = UI.CreateFrame("Frame", "frmOverride", ufTabs.tabContent)
 	local frmOverrideInner = UI.CreateFrame("Frame", "frmOverrideInner", frmOverride)
 	frmOverrideInner:SetPoint("TOPLEFT", frmOverride, "TOPLEFT", 4, 4)
@@ -98,8 +94,8 @@ local function ufConfigDialog(container)
 
 	ufTabs:SetTabPosition("top")
 	ufTabs:AddTab("Configuration", frmConfig)
-	ufTabs:AddTab("Appearance", frmOverride)	
-	
+	ufTabs:AddTab("Appearance", frmOverride)
+
 	ufDialog = WT.Dialog(frmConfigInner)
 		:Combobox("unitSpec", TXT.UnitToTrack, "player",
 			{
@@ -109,6 +105,16 @@ local function ufConfigDialog(container)
 				{text="Focus", value="focus"},
 				{text="Focus's Target", value="focus.target"},
 				{text="Pet", value="player.pet"},
+				{text="Group01's Target", value="group01.target"},
+				{text="Group02's Target", value="group02.target"},
+				{text="Group03's Target", value="group03.target"},
+				{text="Group04's Target", value="group04.target"},
+				{text="Group05's Target", value="group05.target"},
+				{text="Group06's Target", value="group06.target"},
+				{text="Group07's Target", value="group07.target"},
+				{text="Group08's Target", value="group08.target"},
+				{text="Group09's Target", value="group09.target"},
+				{text="Group10's Target", value="group10.target"},
 			}, false) 
 		:Select("template", TXT.UnitFrameTemplate, "LifeUnitFrame1", templateListItems, true, uf_OnTemplateChange)
 		:Checkbox("showLeftPortrait", "Fake Portrait on Left", false)
@@ -127,9 +133,8 @@ local function ufConfigDialog(container)
 		:Checkbox("excludeBuffs", "Hide Buffs on Frame", false)
 		:Checkbox("excludeCasts", "Hide Castbars on Frame", false)
 		:Checkbox("ownBuffs", "Only show my buffs", true)
-		:Checkbox("ownDebuffs", "Only show my debuffs", false)		
+		:Checkbox("ownDebuffs", "Only show my debuffs", false)
 
-		
 		local templateControl = ufDialog:GetControl("template")
 		local templateId = templateControl.getValue()
 
@@ -156,28 +161,19 @@ local function ufConfigDialog(container)
 		local showComboPanel = WT.UnitFrame.Templates[templateId].Configuration.SupportsShowCombo
 		if showComboPanel then ufDialog:GetControl("showCombo"):SetVisible(true)
 		else ufDialog:GetControl("showCombo"):SetVisible(false)
-		end	
+		end
 		local showRankIconPanel = WT.UnitFrame.Templates[templateId].Configuration.SupportsShowRankIconPanel
 		if showRankIconPanel then ufDialog:GetControl("showRankIcon"):SetVisible(true)
 		else ufDialog:GetControl("showRankIcon"):SetVisible(false)
-		end	
-		
+		end
+
 	ufAppearance = WT.Dialog(frmOverrideInner)
 		:Checkbox("ovHealthTexture", "Override Health Texture?", false)
 		:TexSelect("texHealth", "Health Texture", "Texture 39", "bar")
---		:Checkbox("ovHealthColor", "Override Health Color?", false)
---		:ColorPicker("colHealth", "Health Color", 0, 0.5, 0, 0.85)
 		:Checkbox("ovResourceTexture", "Override Resource Texture?", false)
 		:TexSelect("texResource", "Resource Texture", "Texture 69", "bar")
---		:Checkbox("ovResourceColor", "Override Resource Color?", false)
---		:ColorPicker("colResource", "Resource Color", 0.4, 0.6, 0.8, 1)
---		:Checkbox("ovAbsorbTexture", "Override Absorb Texture?", false)
---		:TexSelect("texAbsorb", "Absorb Texture", "Texture 69", "bar")
 		:Checkbox("ovCastTexture", "Override Cast bar Texture?", false)
 		:TexSelect("texCast", "Cast bar Texture", "Texture 69", "bar")
---		:Checkbox("ovHealthBackgroundColor", "Override Health Back color?", false)
---		:ColorPicker("colHealthBackground", "Health Background Color", 0.07, 0.07, 0.07, 0.85)
-		
 end
 
 local function ufGetConfiguration()
@@ -194,10 +190,9 @@ local function ufSetConfiguration(config)
 	ufAppearance:SetValues(config)
 end
 
-
 local rfEditors = {}
-local macroTypes = { "Left", "Middle", "Right", "Mouse4", "Mouse5", "WheelForward", "WheelBack" } 
-local macroNames = { "Left", "Middle", "Right", "Button 4", "Button 5", "Wheel Forward", "Wheel Back" } 
+local macroTypes = { "Left", "Middle", "Right", "Mouse4", "Mouse5", "WheelForward", "WheelBack" }
+local macroNames = { "Left", "Middle", "Right", "Button 4", "Button 5", "Wheel Forward", "Wheel Back" }
 local rfBlackListHots = nil
 local rfBlackListDebuff = nil
 local rfWhiteListHots = nil
@@ -222,7 +217,6 @@ local function rf_OnTemplateChange(templateId)
 	else
 		rfDialog:GetControl("showHoTPanel"):SetVisible(false)
 	end
-	
 	if templateConfig.SupportsDebuffPanel then
 		rfDialog:GetControl("showDebuffPanel"):SetVisible(true)
 	else
@@ -230,9 +224,7 @@ local function rf_OnTemplateChange(templateId)
 	end
 end
 
-
 local function rfConfigDialog(container)
-	
 	container.Reset = function()
 	for idx, editor in ipairs(rfEditors) do editor:SetText("") end
 		rfEditors[1]:SetText("target @unit")
@@ -249,12 +241,12 @@ local function rfConfigDialog(container)
 	local rfTabs = UI.CreateFrame("SimpleLifeTabView", "rfTabs", container)
 	rfTabs:SetPoint("TOPLEFT", container, "TOPLEFT")
 	rfTabs:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", 0, -32)
-	
+
 	local frmConfig = UI.CreateFrame("Frame", "rfConfig", rfTabs.tabContent)
 	local frmConfigInner = UI.CreateFrame("Frame", "rfConfigInner", frmConfig)
 	frmConfigInner:SetPoint("TOPLEFT", frmConfig, "TOPLEFT", 12, 12)
 	frmConfigInner:SetPoint("BOTTOMRIGHT", frmConfig, "BOTTOMRIGHT", -12, -12)
-	
+
 	local frmMacros = UI.CreateFrame("Frame", "rfMacros", rfTabs.tabContent)
 	local frmMacrosInner = UI.CreateFrame("Frame", "rfMacrosInner", frmMacros)
 	frmMacrosInner:SetPoint("TOPLEFT", frmMacros, "TOPLEFT", 4, 4)
@@ -264,7 +256,7 @@ local function rfConfigDialog(container)
 	local frmOverrideInner = UI.CreateFrame("Frame", "rfOverrideInner", frmOverride)
 	frmOverrideInner:SetPoint("TOPLEFT", frmOverride, "TOPLEFT", 4, 4)
 	frmOverrideInner:SetPoint("BOTTOMRIGHT", frmOverride, "BOTTOMRIGHT", -4, -4)
-	
+
 	local frmBlackList = UI.CreateFrame("Frame", "rfBlackList", rfTabs.tabContent)
 	local frmBlackListInner = UI.CreateFrame("Frame", "rflackListInner", frmBlackList)
 	frmBlackListInner:SetPoint("TOPLEFT", frmBlackList, "TOPLEFT", 4, 4)
@@ -272,10 +264,10 @@ local function rfConfigDialog(container)
 
 	rfTabs:SetTabPosition("top")
 	rfTabs:AddTab("Configuration", frmConfig)
-	rfTabs:AddTab("Mouse Macros", frmMacros)	
-	rfTabs:AddTab("Appearance", frmOverride)	
+	rfTabs:AddTab("Mouse Macros", frmMacros)
+	rfTabs:AddTab("Appearance", frmOverride)
 	rfTabs:AddTab("Black/White List", frmBlackList)
-	
+
 	rfDialog = WT.Dialog(frmConfigInner)
 		:Select("template", TXT.RaidFrameTemplate, "LifeRaidFrame1", templateListItems, true, rf_OnTemplateChange)
 		:Select("layout", "Layout", "4 x 5", { "4 x 5", "5 x 4", "2 x 10", "10 x 2", "1 x 20", "20 x 1" }, false)
@@ -289,7 +281,7 @@ local function rfConfigDialog(container)
 		:Checkbox("showHoTTrackers", "Show HoT Trackers", false)
 		:Checkbox("showHoTPanel", "Show HoTs", true)
 		:Checkbox("showDebuffPanel", "Show Debuffs", true)
-		
+
 	local templateControl = rfDialog:GetControl("template")
 	local templateId = templateControl.getValue()
 
@@ -313,35 +305,26 @@ local function rfConfigDialog(container)
 	else
 		rfDialog:GetControl("showDebuffPanel"):SetVisible(false)
 	end
-	
+
 	local macroTabs = UI.CreateFrame("SimpleLifeTabView", "macroTabs", frmMacrosInner)
 	macroTabs:SetTabPosition("left")
 	macroTabs:SetAllPoints(frmMacrosInner)
-	
+
 	local BLTabs = UI.CreateFrame("SimpleLifeTabView", "BLTabs", frmBlackListInner)
 	BLTabs:SetTabPosition("left")
 	BLTabs:SetAllPoints(frmBlackListInner)
-	--BLTabs:SetPoint("TOPLEFT", frmBlackListInner, "TOPLEFT", 16, 16)
-	--BLTabs:SetPoint("BOTTOMRIGHT", frmBlackListInner, "BOTTOMRIGHT", -16, -16)
-	
+
 	rfAppearance = WT.Dialog(frmOverrideInner)
 		:Checkbox("ovHealthTexture", "Override Health Texture?", false)
 		:TexSelect("texHealth", "Health Texture", "Texture 68", "bar")
 		:Checkbox("ovHealthColor", "Override Health Color?", false)
 		:ColorPicker("colHealth", "Health Color", 0, 0.5, 0, 0.85)
---		:Checkbox("ovResourceTexture", "Override Resource Texture?", false)
---		:TexSelect("texResource", "Resource Texture", "wtBantoBar", "bar")
---		:Checkbox("ovResourceColor", "Override Resource Color?", false)
---		:ColorPicker("colResource", "Resource Color", 0.4, 0.6, 0.8, 1)
---		:Checkbox("ovAbsorbTexture", "Override Absorb Texture?", false)
---		:TexSelect("texAbsorb", "Absorb Texture", "Texture 69", "bar")
 		:Checkbox("ovHealthBackgroundColor", "Override Health Back color?", false)
 		:ColorPicker("colHealthBackground", "Health Background Color", 0.07, 0.07, 0.07, 0.85)
 		:Label("__________________Alert/Cleanse______________________")
 		:ColorPicker("CleanseColor", "Cleansable Color", 0.2, 0.15, 0.4, 0.85)
 		:ColorPicker("AlertColor", "Alert Color", 0.5, 0.5, 0, 0.85)
 
-	
 	for idx, name in ipairs(macroNames) do
 		local tabContent = UI.CreateFrame("Frame", "content", macroTabs.tabContent)
 		macroTabs:AddTab(name, tabContent)
@@ -350,47 +333,45 @@ local function rfConfigDialog(container)
 		txt:SetPoint("BOTTOMRIGHT", tabContent, "BOTTOMRIGHT", -16, -16)
 		txt:SetText("")
 		txt:SetBorder(1,0,0,0,1)
-		rfEditors[idx] = txt		
+		rfEditors[idx] = txt
 	end
-		
-		tabContentHotsBL = UI.CreateFrame("Frame", "tabContentHotsBL", BLTabs)
-		BLTabs:AddTab("Hots BL", tabContentHotsBL)
-		local txtHotsBL = UI.CreateFrame("SimpleLifeTextArea", "txtHotsBL", tabContentHotsBL)
-		txtHotsBL:SetPoint("TOPLEFT", tabContentHotsBL, "TOPLEFT", 16, 16)
-		txtHotsBL:SetPoint("BOTTOMRIGHT", tabContentHotsBL, "BOTTOMRIGHT", -16, -16)
-		txtHotsBL:SetText("")
-		txtHotsBL:SetBorder(1,0,0,0,1)
-		rfBlackListHots = txtHotsBL
-	
-		tabContentDebuffBL = UI.CreateFrame("Frame", "tabContentDebuffBL", BLTabs)
-		BLTabs:AddTab("Debuffs BL", tabContentDebuffBL)
-		local txtDebuffBL = UI.CreateFrame("SimpleLifeTextArea", "txtDebuffBL", tabContentDebuffBL)
-		txtDebuffBL:SetPoint("TOPLEFT", tabContentDebuffBL, "TOPLEFT", 16, 16)
-		txtDebuffBL:SetPoint("BOTTOMRIGHT", tabContentDebuffBL, "BOTTOMRIGHT", -16, -16)
-		txtDebuffBL:SetText("")
-		txtDebuffBL:SetBorder(1,0,0,0,1)
-		rfBlackListDebuff = txtDebuffBL
-		
-		tabContentHotsWL = UI.CreateFrame("Frame", "tabContentHotsWL", BLTabs)
-		BLTabs:AddTab("Hots WL", tabContentHotsWL)
-		local txtHotsWL = UI.CreateFrame("SimpleLifeTextArea", "txtHotsWL", tabContentHotsWL)
-		txtHotsWL:SetPoint("TOPLEFT", tabContentHotsWL, "TOPLEFT", 16, 16)
-		txtHotsWL:SetPoint("BOTTOMRIGHT", tabContentHotsWL, "BOTTOMRIGHT", -16, -16)
-		txtHotsWL:SetText("")
-		txtHotsWL:SetBorder(1,0,0,0,1)
-		rfWhiteListHots = txtHotsWL
-	
-		tabContentDebuffWL = UI.CreateFrame("Frame", "tabContentDebuffWL", BLTabs)
-		BLTabs:AddTab("Debuffs WL", tabContentDebuffWL)
-		local txtDebuffWL = UI.CreateFrame("SimpleLifeTextArea", "txtDebuffWL", tabContentDebuffWL)
-		txtDebuffWL:SetPoint("TOPLEFT", tabContentDebuffWL, "TOPLEFT", 16, 16)
-		txtDebuffWL:SetPoint("BOTTOMRIGHT", tabContentDebuffWL, "BOTTOMRIGHT", -16, -16)
-		txtDebuffWL:SetText("")
-		txtDebuffWL:SetBorder(1,0,0,0,1)
-		rfWhiteListDebuff = txtDebuffWL
-		
-end
 
+	tabContentHotsBL = UI.CreateFrame("Frame", "tabContentHotsBL", BLTabs)
+	BLTabs:AddTab("Hots BL", tabContentHotsBL)
+	local txtHotsBL = UI.CreateFrame("SimpleLifeTextArea", "txtHotsBL", tabContentHotsBL)
+	txtHotsBL:SetPoint("TOPLEFT", tabContentHotsBL, "TOPLEFT", 16, 16)
+	txtHotsBL:SetPoint("BOTTOMRIGHT", tabContentHotsBL, "BOTTOMRIGHT", -16, -16)
+	txtHotsBL:SetText("")
+	txtHotsBL:SetBorder(1,0,0,0,1)
+	rfBlackListHots = txtHotsBL
+
+	tabContentDebuffBL = UI.CreateFrame("Frame", "tabContentDebuffBL", BLTabs)
+	BLTabs:AddTab("Debuffs BL", tabContentDebuffBL)
+	local txtDebuffBL = UI.CreateFrame("SimpleLifeTextArea", "txtDebuffBL", tabContentDebuffBL)
+	txtDebuffBL:SetPoint("TOPLEFT", tabContentDebuffBL, "TOPLEFT", 16, 16)
+	txtDebuffBL:SetPoint("BOTTOMRIGHT", tabContentDebuffBL, "BOTTOMRIGHT", -16, -16)
+	txtDebuffBL:SetText("")
+	txtDebuffBL:SetBorder(1,0,0,0,1)
+	rfBlackListDebuff = txtDebuffBL
+
+	tabContentHotsWL = UI.CreateFrame("Frame", "tabContentHotsWL", BLTabs)
+	BLTabs:AddTab("Hots WL", tabContentHotsWL)
+	local txtHotsWL = UI.CreateFrame("SimpleLifeTextArea", "txtHotsWL", tabContentHotsWL)
+	txtHotsWL:SetPoint("TOPLEFT", tabContentHotsWL, "TOPLEFT", 16, 16)
+	txtHotsWL:SetPoint("BOTTOMRIGHT", tabContentHotsWL, "BOTTOMRIGHT", -16, -16)
+	txtHotsWL:SetText("")
+	txtHotsWL:SetBorder(1,0,0,0,1)
+	rfWhiteListHots = txtHotsWL
+
+	tabContentDebuffWL = UI.CreateFrame("Frame", "tabContentDebuffWL", BLTabs)
+	BLTabs:AddTab("Debuffs WL", tabContentDebuffWL)
+	local txtDebuffWL = UI.CreateFrame("SimpleLifeTextArea", "txtDebuffWL", tabContentDebuffWL)
+	txtDebuffWL:SetPoint("TOPLEFT", tabContentDebuffWL, "TOPLEFT", 16, 16)
+	txtDebuffWL:SetPoint("BOTTOMRIGHT", tabContentDebuffWL, "BOTTOMRIGHT", -16, -16)
+	txtDebuffWL:SetText("")
+	txtDebuffWL:SetBorder(1,0,0,0,1)
+	rfWhiteListDebuff = txtDebuffWL
+end
 
 local function rfGetConfiguration()
 	local conf = rfDialog:GetValues()
@@ -402,11 +383,11 @@ local function rfGetConfiguration()
 		if macroText and (macroText:len() > 0) then
 			conf.macros[macroTypes[idx]] = macroText
 		else
-			conf.macros[macroTypes[idx]] = nil 
+			conf.macros[macroTypes[idx]] = nil
 		end
 	end
 
------------------------	blacklist----------------------
+	--blacklist
 	local blacklistHots = rfBlackListHots:GetText():wtSplit("\r")
 	local blacklistHot = {}
 	for idx, buff in ipairs(blacklistHots) do
@@ -426,7 +407,7 @@ local function rfGetConfiguration()
 		end
 	end
 	conf.BlackListDebuff = blacklistDebuff
------------------------whitelist-----------------
+	--whitelist
 	local whitelistHots = rfWhiteListHots:GetText():wtSplit("\r")
 	local whitelistHot = {}
 	for idx, buff in ipairs(whitelistHots) do
@@ -453,7 +434,7 @@ end
 local function rfSetConfiguration(config)
 	rfDialog:SetValues(config)
 	rfAppearance:SetValues(config)
-	
+
 	if not config.macros then config.macros = {} end
 	for idx, editor in ipairs(rfEditors) do
 		local macroText = config.macros[macroTypes[idx]]
@@ -463,8 +444,8 @@ local function rfSetConfiguration(config)
 			rfEditors[idx]:SetText("")
 		end
 	end
-	
-	-----------------------	blacklist----------------------
+
+	--blacklist
 	if not config.BlackListHots then config.BlackListHots = {} end
 	local BLHots = ""
 	if config.BlackListHots then
@@ -475,7 +456,7 @@ local function rfSetConfiguration(config)
 		table.sort(sortedHots)
 		for idx, buff in ipairs(sortedHots) do
 			BLHots = BLHots .. buff .. "\n"
-		end	
+		end
 	end
 	rfBlackListHots:SetText(BLHots)
 
@@ -489,10 +470,10 @@ local function rfSetConfiguration(config)
 		table.sort(sortedDebuffs)
 		for idx, debuff in ipairs(sortedDebuffs) do
 			BLDebuffs = BLDebuffs .. debuff .. "\n"
-		end	
+		end
 	end
 	rfBlackListDebuff:SetText(BLDebuffs)
------------------------	whitelist----------------------
+	--whitelist
 	if not config.WhiteListHots then config.WhiteListHots = {} end
 	local WLHots = ""
 	if config.WhiteListHots then
@@ -503,7 +484,7 @@ local function rfSetConfiguration(config)
 		table.sort(sortedHots)
 		for idx, buff in ipairs(sortedHots) do
 			WLHots = WLHots .. buff .. "\n"
-		end	
+		end
 	end
 	rfWhiteListHots:SetText(WLHots)
 
@@ -517,18 +498,16 @@ local function rfSetConfiguration(config)
 		table.sort(sortedDebuffs)
 		for idx, debuff in ipairs(sortedDebuffs) do
 			WLDebuffs = WLDebuffs .. debuff .. "\n"
-		end	
+		end
 	end
 	rfWhiteListDebuff:SetText(WLDebuffs)
-	
 end
-
 
 local gfEditors = {}
 local gfDialog = false
 local gfAppearance = false
-local function gfConfigDialog(container)
 
+local function gfConfigDialog(container)
 	local templateListItems = {}
 	for templateId, template in pairs(WT.UnitFrame.Templates) do
 		if template.Configuration.RaidSuitable then
@@ -539,7 +518,7 @@ local function gfConfigDialog(container)
 	local ufTabs = UI.CreateFrame("SimpleLifeTabView", "gfTabs", container)
 	ufTabs:SetPoint("TOPLEFT", container, "TOPLEFT")
 	ufTabs:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", 0, -32)
-	
+
 	local frmConfig = UI.CreateFrame("Frame", "ufConfig", ufTabs.tabContent)
 	local frmConfigInner = UI.CreateFrame("Frame", "ufConfigInner", frmConfig)
 	frmConfigInner:SetPoint("TOPLEFT", frmConfig, "TOPLEFT", 12, 12)
@@ -549,7 +528,7 @@ local function gfConfigDialog(container)
 	local frmMacrosInner = UI.CreateFrame("Frame", "rfMacrosInner", frmMacros)
 	frmMacrosInner:SetPoint("TOPLEFT", frmMacros, "TOPLEFT", 4, 4)
 	frmMacrosInner:SetPoint("BOTTOMRIGHT", frmMacros, "BOTTOMRIGHT", -4, -4)
-	
+
 	local frmOverride = UI.CreateFrame("Frame", "frmOverride", ufTabs.tabContent)
 	local frmOverrideInner = UI.CreateFrame("Frame", "frmOverrideInner", frmOverride)
 	frmOverrideInner:SetPoint("TOPLEFT", frmOverride, "TOPLEFT", 4, 4)
@@ -557,9 +536,9 @@ local function gfConfigDialog(container)
 
 	ufTabs:SetTabPosition("top")
 	ufTabs:AddTab("Configuration", frmConfig)
-	ufTabs:AddTab("Mouse Macros", frmMacros)	
-	ufTabs:AddTab("Appearance", frmOverride)	
-	
+	ufTabs:AddTab("Mouse Macros", frmMacros)
+	ufTabs:AddTab("Appearance", frmOverride)
+
 	gfDialog = WT.Dialog(frmConfigInner)
 		:Select("group", "Select Group", "Group 1", { "Group 1", "Group 2", "Group 3", "Group 4" }, false)
 		:Select("template", TXT.RaidFrameTemplate, "Heal Frame", templateListItems, true)
@@ -575,7 +554,7 @@ local function gfConfigDialog(container)
 		:Checkbox("reverseUnits", TXT.ReverseUnits, false)
 		:Checkbox("showHoTPanel", "Show HoTs (if template allows)", false)
 		:Checkbox("showDebuffPanel", "Show Debuffs (if template allows)", false)
-		
+
 	local macroTabs = UI.CreateFrame("SimpleLifeTabView", "macroTabs", frmMacrosInner)
 	macroTabs:SetTabPosition("left")
 	macroTabs:SetAllPoints(frmMacrosInner)
@@ -583,31 +562,22 @@ local function gfConfigDialog(container)
 	gfAppearance = WT.Dialog(frmOverrideInner)
 		:Checkbox("ovHealthTexture", "Override Health Texture?", false)
 		:TexSelect("texHealth", "Health Texture", "Texture 68", "bar")
---		:Checkbox("ovHealthColor", "Override Health Color?", false)
---		:ColorPicker("colHealth", "Health Color", 0, 0.5, 0, 0.85)
 		:Checkbox("ovResourceTexture", "Override Resource Texture?", false)
 		:TexSelect("texResource", "Resource Texture", "Texture 19", "bar")
---		:Checkbox("ovResourceColor", "Override Resource Color?", false)
---		:ColorPicker("colResource", "Resource Color", 0.4, 0.6, 0.8, 1)
---		:Checkbox("ovAbsorbTexture", "Override Absorb Texture?", false)
---		:TexSelect("texAbsorb", "Absorb Texture", "Texture 69", "bar")
 		:Checkbox("ovHealthBackgroundColor", "Override Health Back color?", false)
 		:ColorPicker("colHealthBackground", "Health Background Color", 0.07, 0.07, 0.07, 0.85)
 
 	for idx, name in ipairs(macroNames) do
-	
 		local tabContent = UI.CreateFrame("Frame", "content", macroTabs.tabContent)
 		macroTabs:AddTab(name, tabContent)
-	
+
 		local txt = UI.CreateFrame("SimpleLifeTextArea", "text", tabContent)
 		txt:SetPoint("TOPLEFT", tabContent, "TOPLEFT", 16, 16)
 		txt:SetPoint("BOTTOMRIGHT", tabContent, "BOTTOMRIGHT", -16, -16)
 		txt:SetText("")
 		txt:SetBorder(1,0,0,0,1)
 		gfEditors[idx] = txt
-		
 	end
-
 end
 
 local function gfGetConfiguration()
@@ -620,7 +590,7 @@ local function gfGetConfiguration()
 		if macroText and (macroText:len() > 0) then
 			conf.macros[macroTypes[idx]] = macroText
 		else
-			conf.macros[macroTypes[idx]] = nil 
+			conf.macros[macroTypes[idx]] = nil
 		end
 	end
 	return conf
@@ -631,7 +601,7 @@ local function gfSetConfiguration(config)
 	gfAppearance:SetValues(config)
 
 	if not config.macros then config.macros = {} end
-	
+
 	for idx, editor in ipairs(gfEditors) do
 		local macroText = config.macros[macroTypes[idx]]
 		if macroText and (macroText:len() > 0) then
@@ -643,13 +613,9 @@ local function gfSetConfiguration(config)
 
 end
 
-
 local function CreateUnitFrame(config)
-
 	local uf, options = WT.UnitFrame.CreateFromConfiguration(config)
-	
 	if config.showLeftPortrait then
-	
 		local elPortBorder = uf:CreateElement(
 		{
 			id="portraitBorder", type="Frame", parent="frameBackdrop", layer=1,
@@ -661,10 +627,9 @@ local function CreateUnitFrame(config)
 			visibilityBinding="id",
 			color={r=0, g=0, b=0, a=1},
 		})
-		
-		local elPortBackdrop = uf:CreateElement(		
+		local elPortBackdrop = uf:CreateElement(
 		{
-			id="portraitBackdrop", type="MediaSet", parent="portraitBorder", layer=5, 
+			id="portraitBackdrop", type="MediaSet", parent="portraitBorder", layer=5,
 			attach=
 			{
 				{ point="TOPLEFT", element="portraitBorder", targetPoint="TOPLEFT", offsetX=1, offsetY=1 },
@@ -672,14 +637,13 @@ local function CreateUnitFrame(config)
 			},
 			visibilityBinding="hostility",
 			nameBinding="hostility",
-			names = 
+			names =
 			{
 				["friendly"] = "Portrait_BG_Friendly",
 				["hostile"] = "Portrait_BG_Hostile",
 				["neutral"] = "Portrait_BG_Neutral",
-			},			
+			},
 		})
-		
 		local elPortCalling = uf:CreateElement(
 		{
 			id="portraitImage", type="MediaSet", parent="portraitBorder", layer=10,
@@ -690,15 +654,14 @@ local function CreateUnitFrame(config)
 			},
 			visibilityBinding="calling",
 			nameBinding="calling",
-			names = 
+			names =
 			{
 				["cleric"] = "Portrait_Calling_Cleric",
 				["mage"] = "Portrait_Calling_Mage",
 				["rogue"] = "Portrait_Calling_Rogue",
 				["warrior"] = "Portrait_Calling_Warrior",
-			},			
+			},
 		})
-
 	 	local elPortElite = uf:CreateElement(
 	 	{
 	 		id="portraitElite", type="Image", parent="portraitBorder", layer=20,
@@ -710,14 +673,13 @@ local function CreateUnitFrame(config)
 	 		texAddon="Rift", texFile="UpgradableNPC_I18.dds",
 	 		visibilityBinding="tier",
 	 	})
-	 
+
 	 	elPortBorder:EventAttach(Event.UI.Layout.Size, function(self, h)
 			elPortBorder:SetWidth(elPortBorder:GetHeight())
 		end, "Event.UI.Layout.Size")
 	end
-
 	if config.showRightPortrait then
-	
+
 		local elPortBorderR = uf:CreateElement(
 		{
 			id="portraitBorderR", type="Frame", parent="frameBackdrop", layer=1,
@@ -729,8 +691,7 @@ local function CreateUnitFrame(config)
 			visibilityBinding="id",
 			color={r=0, g=0, b=0, a=1},
 		})
-		
-		local elPortBackdropR = uf:CreateElement(		
+		local elPortBackdropR = uf:CreateElement(
 		{
 			id="portraitBackdropR", type="MediaSet", parent="portraitBorderR", layer=5,
 			attach=
@@ -740,14 +701,13 @@ local function CreateUnitFrame(config)
 			},
 			visibilityBinding="hostility",
 			nameBinding="hostility",
-			names = 
+			names =
 			{
 				["friendly"] = "Portrait_BG_Friendly",
 				["hostile"] = "Portrait_BG_Hostile",
 				["neutral"] = "Portrait_BG_Neutral",
-			},			
+			},
 		})
-		
 		local elPortCallingR = uf:CreateElement(
 		{
 			id="portraitImageR", type="MediaSet", parent="portraitBorderR", layer=10,
@@ -758,15 +718,14 @@ local function CreateUnitFrame(config)
 			},
 			visibilityBinding="calling",
 			nameBinding="calling",
-			names = 
+			names =
 			{
 				["cleric"] = "Portrait_Calling_Cleric",
 				["mage"] = "Portrait_Calling_Mage",
 				["rogue"] = "Portrait_Calling_Rogue",
 				["warrior"] = "Portrait_Calling_Warrior",
-			},			
+			},
 		})
-	 
 	 	local elPortEliteR = uf:CreateElement(
 	 	{
 	 		id="portraitEliteR", type="Image", parent="portraitBorderR", layer=20,
@@ -778,16 +737,14 @@ local function CreateUnitFrame(config)
 	 		texAddon="Rift", texFile="UpgradableNPC_I18.dds",
 	 		visibilityBinding="tier",
 	 	})
-	 
+
 	 	elPortBorderR:EventAttach(Event.UI.Layout.Size, function(self, h)
 			elPortBorderR:SetWidth(elPortBorderR:GetHeight())
 		end, "Event.UI.Layout.Size")
 	end
-	
-	return uf, options
-	
-end
 
+	return uf, options
+end
 
 -- Register as a gadget factory for creating unit frames from templates
 WT.Gadget.RegisterFactory("UnitFrame",

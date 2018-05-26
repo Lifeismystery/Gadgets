@@ -6,7 +6,6 @@ function WT.UnitFrame.CreateFromConfiguration(configuration)
 	local template = configuration.template
 	local unitSpec = configuration.unitSpec
 
-		--dump(Inspect.Unit.Detail(Inspect.Unit.Lookup("group01")))
 	if not template then print("Missing required configuration item: template") return end
 	if not unitSpec then print("Missing required configuration item: unitSpec") return end
 
@@ -82,21 +81,10 @@ function WT.UnitFrame.CreateRaidFramesFromConfiguration(configuration)
 
 	wrapper:SetSecureMode("restricted")
 	-- Pass through our clickToTarget preference to the template to allow it to set itself up appropriately
-	--if not configuration.templateOptions then configuration.templateOptions = {} end
-	--configuration.templateOptions.clickToTarget = configuration.clickToTarget
 
 	local frames = {}
 
 	local _debug = false
-
-
-	--[[for i = 1,20 do
-		local unitId = Inspect.Unit.Lookup(sequence[i])
-		if unitId ~= nil then
-		dump(Inspect.Unit.Detail(unitId))
-		end
-	end]]
-
 
 	if WT.GetGroupMode() == "solo" and configuration.show_Solo == true then
 		frames[1] = WT.UnitFrame.CreateFromTemplate(template, "player", configuration)
@@ -104,10 +92,6 @@ function WT.UnitFrame.CreateRaidFramesFromConfiguration(configuration)
 		frames[1] = WT.UnitFrame.CreateFromTemplate(template, sequence[1], configuration)
 	else
 		frames[1] = WT.UnitFrame.CreateFromTemplate(template, "player", configuration)
-		--local debugDesc = UI.CreateFrame("Text", "TXT", WT.Context)
-		--debugDesc:SetText(sequence[1])
-		--debugDesc:SetLayer(500)
-		--debugDesc:SetPoint("BOTTOMLEFT", frames[1], "BOTTOMLEFT")
 	end
 
 	frames[1]:SetPoint("TOPLEFT", wrapper, "TOPLEFT")
@@ -232,7 +216,6 @@ function WT.UnitFrame.CreateRaidFramesFromConfiguration(configuration)
 	return wrapper, { resizable = { right - left + 1, bottom - top + 1, (right - left + 1) * 4, (bottom - top + 1) * 4,  } }
 end
 
-
 local groupFrameGadgets = {}
 
 -- Gadget Factory Function for grid of 20 UnitFrames
@@ -281,16 +264,10 @@ function WT.UnitFrame.CreateGroupFramesFromConfiguration(configuration)
 
 	wrapper:SetSecureMode("restricted")
 	-- Pass through our clickToTarget preference to the template to allow it to set itself up appropriately
-	--if not configuration.templateOptions then configuration.templateOptions = {} end
-	--configuration.templateOptions.clickToTarget = configuration.clickToTarget
 
 	local frames = {}
 
 	local _debug = false
-
-	--[[if Inspect.Unit.Lookup("player") then
-
-	end]]
 
 	if WT.GetGroupMode() == "solo" and configuration.show_Solo == true then
 		frames[1] = WT.UnitFrame.CreateFromTemplate(template, "player", configuration)
@@ -326,7 +303,7 @@ function WT.UnitFrame.CreateGroupFramesFromConfiguration(configuration)
 		xRows = 5
 		for i = 2,5 do
 			frames[i]:SetPoint("TOPLEFT", frames[i-1], "BOTTOMLEFT", 0, 10)
-	end
+		end
 	else
 		xCols = 1
 		xRows = 5
@@ -373,8 +350,6 @@ function WT.UnitFrame.CreateGroupFramesFromConfiguration(configuration)
 	return wrapper, { resizable = { right - left + 1, bottom - top + 1, (right - left + 1) * 2, (bottom - top + 1) * 2,  }, caption=configuration.group }
 end
 
-
-
 function WT.UnitFrame.CreateFromTemplate(templateName, unitSpec, options)
 
 	WT.Log.Info("Creating unit frame from template " .. tostring(templateName) .. " for unit " .. tostring(unitSpec))
@@ -387,12 +362,6 @@ function WT.UnitFrame.CreateFromTemplate(templateName, unitSpec, options)
 			Library.Media.SetTexture(uf.Elements.barHealth.Image, options.texHealth)
 		end
 	end
-
-	--[[if options.ovHealthColor and options.colHealth then
-		if uf.Elements and uf.Elements.barHealth then
-			uf.Elements.barHealth:BindColor(unpack(options.colHealth))
-		end
-	end]]
 
 	if options.ovResourceTexture and options.texResource then
 		if uf.Elements and uf.Elements.barResource then
@@ -425,15 +394,11 @@ function WT.UnitFrame.CreateFromTemplate(templateName, unitSpec, options)
 	return uf, createOptions
 end
 
-
-
-
-
 -- EVENT HANDLING FOR DYNAMICALLY HIDING AND SHOWING UNIT FRAME GADGETS
 
 local function ApplyGroupFrameVisibility()
 	for groupFrame in pairs(groupFrameGadgets) do
-		if groupFrame.hideWhenEmpty and not WT.GroupExists(groupFrame.groupId) then
+		if groupFrame.hideWhenEmpty and not WT.GroupExists(groupFrame.groupId) and not WT.Gadget.isSecure then
 			WT.HideSecureFrame(groupFrame)
 		else
 			WT.ShowSecureFrame(groupFrame)
@@ -443,23 +408,23 @@ end
 
 local function ApplyRaidFrameVisibility()
 	for raidFrame in pairs(raidFrameGadgets) do
-		if raidFrame.hideWhenEmpty and WT.GetGroupMode() == "solo" then
+		if raidFrame.hideWhenEmpty and WT.GetGroupMode() == "solo" and not WT.Gadget.isSecure then
 			WT.HideSecureFrame(raidFrame)
 		else
 			WT.ShowSecureFrame(raidFrame)
 		end
 		if WT.GetGroupMode() == "solo" then
 		    WT.SecureFunction(
-		        function() 
+		        function()
 		            raidFrame.frames[1]:TrackUnit("player")
-		            if (raidFrame.macros) then raidFrame.frames[1]:SetMacros(raidFrame.macros) end 
-		        end)			
+		            if (raidFrame.macros) then raidFrame.frames[1]:SetMacros(raidFrame.macros) end
+		        end)
 		else
 		    WT.SecureFunction(
-		        function() 
+		        function()
 		            raidFrame.frames[1]:TrackUnit(raidFrame.frame01Unit)
-		            if (raidFrame.macros) then raidFrame.frames[1]:SetMacros(raidFrame.macros) end 		             
-		        end)			
+		            if (raidFrame.macros) then raidFrame.frames[1]:SetMacros(raidFrame.macros) end
+		        end)
 		end
 	end
 end
@@ -492,8 +457,11 @@ local function OnGroupModeChanged(hEvent, mode, oldMode)
 	ApplyRaidFrameVisibility()
 end
 
+
 Command.Event.Attach(WT.Event.GroupAdded, OnGroupAdded, "OnGroupAdded" )
 Command.Event.Attach(WT.Event.GroupRemoved, OnGroupRemoved, "OnGroupRemoved" )
+Command.Event.Attach(WT.Event.SecureLock, OnGroupAdded, "OnGroupAdded" )
+Command.Event.Attach(WT.Event.SecureUnlock, OnGroupRemoved, "OnGroupRemoved" )
 Command.Event.Attach(WT.Event.GadgetsLocked, OnLocked, "OnLocked" )
 Command.Event.Attach(WT.Event.GadgetsUnlocked, OnUnlocked, "OnUnlocked" )
 Command.Event.Attach(WT.Event.GroupModeChanged, OnGroupModeChanged, "OnGroupModeChanged" )

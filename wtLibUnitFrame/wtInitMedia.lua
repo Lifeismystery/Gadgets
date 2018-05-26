@@ -8,17 +8,12 @@ local AddonId = toc.identifier
 
 -- Load all of the built in media -----------------------------------------------------------------
 Library.Media.AddTexture("wtBantoBar", AddonId, "img/BantoBar.png", {"bar", "colorize"})
+Library.Media.AddTexture("wtAbsorb", AddonId, "img/textures/CkauAbsorb.png", {"bar", "colorize"})
 Library.Media.AddTexture("wtDiagonal", AddonId, "img/Diagonal.png", {"bar", "colorize"})
 Library.Media.AddTexture("wtGlaze2", AddonId, "img/Glaze2.png", {"bar", "colorize"})
 Library.Media.AddTexture("wtHealbot", AddonId, "img/Healbot.png", {"bar", "colorize"})
-Library.Media.AddTexture("wtOrbGreen", AddonId, "img/orb_green.tga", {"orb"})
-Library.Media.AddTexture("wtOrbBlue", AddonId, "img/orb_blue.tga", {"orb"})
 Library.Media.AddTexture("wtReadyCheck", AddonId, "img/wtReady.png", {"imgset", "readycheck"})
 Library.Media.AddTexture("wtRankPips", AddonId, "img/wtRankPips.png", {"imgset", "elitestatus"})
-Library.Media.AddTexture("wtRanks24", AddonId, "img/wtRanks24.png", {"imgset", "elitestatus"})
-Library.Media.AddTexture("wtRanks38", AddonId, "img/wtRanks38.png", {"imgset", "elitestatus"})
-Library.Media.AddTexture("wtSweep", AddonId, "img/Sweep.png", {"imgset", "sweep"})
-
 -----------------------------------Life------------------------------------------------------------
 Library.Media.AddTexture("octanusHeal", "Rift", "raid_icon_role_heal.png.dds", {"roleHeal"})
 Library.Media.AddTexture("octanusDPS", "Rift", "raid_icon_role_dps.png.dds", {"roleDPS"})
@@ -31,9 +26,6 @@ Library.Media.AddTexture("iconRoleTank", "Rift", "vfx_ui_mob_tag_tank_mini.png.d
 Library.Media.AddTexture("iconRoleSupport", "Rift", "vfx_ui_mob_tag_support_mini.png.dds", {"roleSupport"})
 -----------------------------------Life------------------------------------------------------------
 Library.Media.AddTexture("octanusHP", AddonId, "img/octanusHP.png", {"bar", "healthBar"})
-Library.Media.AddTexture("OctanusHP_red", AddonId, "img/octanusHP_red.png", {"bar", "healthBar"})
-Library.Media.AddTexture("octanusMana", AddonId, "img/octanusMana.png", {"bar", "manaBar"})
-Library.Media.AddTexture("octanusEnergy", AddonId, "img/octanusEnergy.png", {"bar", "energyBar"})
 
 Library.Media.AddTexture("riftRaidHealthBar", "Rift", "raid_healthbar.png.dds", {"bar"})
 Library.Media.AddTexture("riftRaidRoleHeal", "Rift", "raid_icon_role_heal.png.dds", {"roleHeal"})
@@ -116,9 +108,8 @@ Library.Media.AddTexture("Portrait_Calling_Rogue", AddonId, "img/Portrait_Callin
 Library.Media.AddTexture("Portrait_Calling_Warrior", AddonId, "img/Portrait_Calling_Warrior.png", {})
 
 Library.Media.AddTexture("Mentoring", "Rift", "TargetPortrait_Mentor.png.dds", {"Mentoring"})
-Library.Media.AddTexture("icon_boss", AddonId, "img/icon_boss.png", {})
-Library.Media.AddTexture("icon_defiant", AddonId, "img/icon_defiant.png", {})
-
+--Library.Media.AddTexture("icon_boss", AddonId, "img/icon_boss.png", {})
+Library.Media.AddTexture("icon_boss", "Rift", "emblem_deathcon.png.dds", {})
 
 Library.Media.AddTexture("Icon_normal", "Rift", "emblem_normal.png.dds", {"normal"})
 Library.Media.AddTexture("Icon_group", "Rift", "emblem_boss.png.dds", {"group"})
@@ -147,3 +138,4 @@ Library.Media.AddTexture("Portrait_Cleric", "Rift", "CharacterSheet_I1BA.dds", {
 Library.Media.AddTexture("Portrait_Mage", "Rift", "CharacterSheet_I1BB.dds", {"mage"})
 Library.Media.AddTexture("Portrait_Rogue", "Rift", "CharacterSheet_I1BD.dds", {"rogue"})
 Library.Media.AddTexture("Portrait_Warrior", "Rift", "CharacterSheet_I1BF.dds", {"warrior"})
+Library.Media.AddTexture("AHAbsorb", AddonId, "img/textures/AHAbsorb.png", {"bar", "colorize"})

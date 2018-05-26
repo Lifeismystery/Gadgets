@@ -52,7 +52,6 @@ local function translatePoint(pt)
 	error("Invalid point: " .. tostring(pt))
 end
 
-
 function RefreshPosition(frame)
 
 	local h1, h2, v1, v2
@@ -91,7 +90,6 @@ function RefreshPosition(frame)
         frame.top = y1 - deltaY
     end
 end
-
 
 -- This is the actual implementation after names have been expanded
 local function _SetPoint(self, fromX, fromY, attachTo, toX, toY, offsetX, offsetY)
@@ -152,7 +150,6 @@ local function _SetPoint(self, fromX, fromY, attachTo, toX, toY, offsetX, offset
 	RefreshPosition(self)
 end
 
-
 function WT.UnitFrame.EnableResizableTemplate(rootFrame, frameWidth, frameHeight, elList)
 	
 	rootFrame:EventAttach(Event.UI.Layout.Size, function(self, h)
@@ -210,7 +207,5 @@ function WT.UnitFrame.EnableResizableTemplate(rootFrame, frameWidth, frameHeight
 			el.width = nil
 			el.height = nil
 		end
-		
 	end
-
 end

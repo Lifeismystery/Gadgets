@@ -1,7 +1,7 @@
 local toc, data = ...
 local AddonId = toc.identifier
 
--- Frame Configuration Options --------------------------------------------------
+--Frame Configuration Options
 local HPframe = WT.UnitFrame:Template("HPframe")
 HPframe.Configuration.Name = "HP frame"
 HPframe.Configuration.RaidSuitable = false
@@ -18,23 +18,22 @@ HPframe.Configuration.SupportsShowRadius = false
 HPframe.Configuration.SupportsShowCombo = false
 HPframe.Configuration.SupportsShowRankIconPanel = false
 
---------------------------------------------------------------
 function HPframe:Construct(options)
 	local template =
 	{
-		elements = 
+		elements =
 		{
 			{
 				id="frameBackdrop", type="Frame", parent="frame", layer=1, alpha=1,
-				attach = 
-				{ 
+				attach =
+				{
 					{ point="TOPLEFT", element="frame", targetPoint="TOPLEFT", offsetX=1, offsetY=-1, },
-					{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT", offsetX=-1, offsetY=1, } 
-				},            				
+					{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT", offsetX=-1, offsetY=1, }
+				},
 				visibilityBinding="id",
 				FrameAlpha = 1,
-				FrameAlphaBinding="FrameAlpha",				
-			}, 
+				FrameAlphaBinding="FrameAlpha",
+			},
 			{
 				id="border", type="Bar", parent="frameBackdrop", layer=10, alpha=1,
 				attach = {
@@ -42,11 +41,11 @@ function HPframe:Construct(options)
 					{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT", offsetX=-2, offsetY=-2 },
 				},
 				binding="borderWigth",
-				backgroundColor={r=0, g=0, b=0, a=0},				
+				backgroundColor={r=0, g=0, b=0, a=0},
 				Color={r=0,g=0,b=0, a=0},
 				border=true, BorderColorBinding="BorderColorUnitFrame", BorderColorUnitFrame = {r=0,g=0,b=0,a=1},
 				borderTextureAggro=true, BorderTextureAggroVisibleBinding="BorderTextureAggroVisible", BorderTextureAggroVisible=true,
-			},	
+			},
 			{
 				id="barHealth", type="Bar", parent="frameBackdrop", layer=10,
 				attach = {
@@ -55,9 +54,9 @@ function HPframe:Construct(options)
 				},
 				growthDirection="right",
 				binding="healthPercent",
-				media="Texture 39", 
+				media="Texture 39",
 				HealthUnitColor={r=0.22,g=0.55,b=0.06, a=0.85},
-				colorBinding="HealthUnitColor",	
+				colorBinding="HealthUnitColor",
 				backgroundColor={r=0.07, g=0.07, b=0.07, a=0.85},
 			},
 			{
@@ -81,26 +80,13 @@ function HPframe:Construct(options)
 				growthDirection="right",
 				binding="absorbPercent", color={r=0.1,g=0.79,b=0.79,a=1.0},
 				backgroundColor={r=0, g=0, b=0, a=0},
-				media="Texture 69", 
+				media="Texture 69",
 				fullBorder=true,
 				BarWithBorderColor={r=0,g=1,b=1,a=1},
 			},
-			--[[{
-				id="labelhealth", type="Label", parent="frameBackdrop", layer=20,
-				attach = {{ point="CENTERRIGHT", element="frame", targetPoint="CENTERRIGHT", offsetX=0, offsetY=0 }},
-				visibilityBinding="health",
-				text=" {health} | {healthMax}", default="", fontSize=12, outline=true,
-			},
-		
-			{
-				id="labelhealthPercent", type="Label", parent="frameBackdrop", layer=20,
-				attach = {{ point="CENTERRIGHT", element="labelhealth", targetPoint="CENTERRIGHT", offsetX=0, offsetY=0   }},
-				visibilityBinding="health",
-				text="{healthPercent}%", default="", fontSize=12, outline=true,
-			},	]]				
 			{
 				id="labelName", type="Label", parent="frame", layer=20,
-				attach = {{ point="BOTTOMLEFT", element="frame", targetPoint="TOPLEFT", offsetX=5, offsetY=5 }}, 
+				attach = {{ point="BOTTOMLEFT", element="frame", targetPoint="TOPLEFT", offsetX=5, offsetY=5 }},
 				visibilityBinding="name",
 				text="{nameShort}", default="", outline=true, fontSize=16,
 				colorBinding="NameColor",
@@ -117,7 +103,7 @@ function HPframe:Construct(options)
 			    attach = {{ point="TOPCENTER", element="frame", targetPoint="TOPCENTER", offsetX=0, offsetY=0 }},
 			    width = 20, height = 20,
 			    nameBinding="mark",
-			    names = 
+			    names =
 			    {
 			        ["1"] = "riftMark01",
 			        ["2"] = "riftMark02",
@@ -155,14 +141,13 @@ function HPframe:Construct(options)
 			{
 			id="imgInCombat", type="Image", parent="frame", layer=55,
 			attach = {{ point="CENTER", element="frameBackdrop", targetPoint="TOPLEFT", offsetX=0, offsetY=0 }}, visibilityBinding="combat",
-			texAddon=AddonId, 
+			texAddon=AddonId,
 			texFile="img/InCombat32.png",
 			width=10, height=10,
 			},
-			
 		}
 	}
-	
+
 	for idx,element in ipairs(template.elements) do
 	    local showElement = true
 		if not options.showAbsorb and element.id == "barAbsorb" then showElement = false end
@@ -170,13 +155,13 @@ function HPframe:Construct(options)
 		if options.excludeCasts and ((element.id == "barCast") or (element.id == "labelCast") or (element.id == "labelTime")) then showElement = false end
 		if not options.showCombo and element.id == "labelCombo" then showElement = false end
 		if not options.showRankIcon and element.id == "imgRank" then showElement = false end
-		if options.shortname == true and element.id == "labelName" then 
+		if options.shortname == true and element.id == "labelName" then
 			element.text = "{nameShort}"
-		elseif	options.shortname == false and element.id == "labelName" then 	
+		elseif	options.shortname == false and element.id == "labelName" then
 			element.text = "{name}"
 		end
 		if not options.showname == true and element.id == "labelName" then showElement = false end
-		if not options.showRadius and element.id == "labelRadius" then showElement = false end	
+		if not options.showRadius and element.id == "labelRadius" then showElement = false end
 		if showElement then
 			self:CreateElement(element)
 		end
@@ -193,21 +178,20 @@ function HPframe:Construct(options)
 			local fracMax = math.max(fracWidth, fracHeight)
 		end,
 		"LayoutSize")
-	
+
 	self:SetSecureMode("restricted")
 	self:SetMouseoverUnit(self.UnitSpec)
-	
+
 	if options.clickToTarget then
 		self.Event.LeftClick = "target @" .. self.UnitSpec
 	end
-	
-	if options.contextMenu then 
-		self.Event.RightClick = 
-			function() 
-				if self.UnitId then 
-					Command.Unit.Menu(self.UnitId) 
-				end 
-			end 
+
+	if options.contextMenu then
+		self.Event.RightClick =
+			function()
+				if self.UnitId then
+					Command.Unit.Menu(self.UnitId)
+				end
+			end
 	end
-	
- end  
+ end

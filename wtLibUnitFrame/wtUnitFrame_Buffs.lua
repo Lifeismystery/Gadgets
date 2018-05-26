@@ -1,7 +1,6 @@
 local toc, data = ...
 local AddonId = toc.identifier
 
-
 --[[
 	A BuffSet is a table that must contain the following methods:
 	:CanAccept(buff) - return true if there is a valid slot available for the buff
@@ -11,7 +10,6 @@ local AddonId = toc.identifier
 	:Done() - all changes applied, the set can now compress itself/sort itself, or whatever
 --]]
 function WT.UnitFrame:RegisterBuffSet(buffSet)
-
 	if not self.BuffSets then self.BuffSets = {} end
 	if not buffSet.CanAccept then error("Invalid BuffSet - missing CanAccept method") end
 	if not buffSet.Add then error("Invalid BuffSet - missing Add method") end
@@ -22,9 +20,7 @@ function WT.UnitFrame:RegisterBuffSet(buffSet)
 end
 
 
-
-function WT.UnitFrame:BuffHandler(added, removed, updated)
-
+function WT.UnitFrame:BuffHandler_Worker(added, removed, updated)
 	-- bail out if we are called on initialisation
 	--if not WT.Player then
 	--	WT.Player = {}
@@ -49,12 +45,14 @@ function WT.UnitFrame:BuffHandler(added, removed, updated)
 	-- Then add in any new buffs
 	if added then
 		for buffId, buff in pairs(added) do
-		
-			if ((self.Options.ownBuffs) and (not buff.debuff) and (buff.caster ~= WT.Player.id)) 
-			or ((self.Options.ownDebuffs) and (buff.debuff) and (buff.caster ~= WT.Player.id))
-			then
+			local isNotExcluded = true
+			if (buff.caster ~= WT.Player.id) then
+				if ((self.Options.ownBuffs) and (not buff.debuff)) or ((self.Options.ownDebuffs) and (buff.debuff))	then
+					isNotExcluded = false
+				end
+			end
 				-- exclude
-			else		
+			if isNotExcluded == true then
 				buff.priority = self:GetBuffPriority(buff)		
 				self.BuffData[buffId] = buff
 				self.BuffAllocations[buffId] = false -- default to unallocated
@@ -111,16 +109,18 @@ function WT.UnitFrame:BuffHandler(added, removed, updated)
 	
 end
 
-
+function WT.UnitFrame:BuffHandler(added, removed, updated)
+	local job = coroutine.create(WT.UnitFrame.BuffHandler_Worker)
+	coroutine.resume(job, self, added, removed, updated)
+end
 
 -- This function calculates the difference between the buffs currently on the unitframe
 -- and the buffs actually on the unit, and generates an OnBuffUpdates() event to apply
 -- the differences
-function WT.UnitFrame:ApplyBuffDelta()
+function WT.UnitFrame:ApplyBuffDelta_Worker()
 
 -- .BuffData[buffId] = buff
 -- .BuffAllocations[buffId] = buffset
-
 	local changes = nil
 
 	if not self.Unit and self.BuffData then
@@ -128,9 +128,9 @@ function WT.UnitFrame:ApplyBuffDelta()
 			if not changes then changes = {} end
 			if not changes.remove then changes.remove = {} end
 			changes.remove[buffId] = buff
-		end 
-	end 
-	
+		end
+	end
+
 	if self.Unit then
 		local actualBuffs = self.Unit.Buffs
 		if self.BuffData then
@@ -151,21 +151,23 @@ function WT.UnitFrame:ApplyBuffDelta()
 			if not self.BuffData or not self.BuffData[buffId] then
 				if not changes then changes = {} end
 				if not changes.add then changes.add = {} end
-				changes.add[buffId] = buff			
+				changes.add[buffId] = buff
 			end
 		end
 	end
-	
+
 	if changes then
 		self:BuffHandler(changes.add, changes.remove, changes.update)
 	end
 
 end
-
+function WT.UnitFrame:ApplyBuffDelta()
+	local job = coroutine.create(WT.UnitFrame.ApplyBuffDelta_Worker)
+	coroutine.resume(job,self)
+end
 
 -- Clears all buffs from the frame, and then applies them again
 function WT.UnitFrame:ReapplyBuffDelta()
-
 	local changes = nil
 
 	if self.BuffData then
@@ -173,13 +175,12 @@ function WT.UnitFrame:ReapplyBuffDelta()
 			if not changes then changes = {} end
 			if not changes.remove then changes.remove = {} end
 			changes.remove[buffId] = buff
-		end 
-	end 
+		end
+	end
 
 	if changes then
 		self:BuffHandler(changes.add, changes.remove, changes.update)
 	end
 
 	self:ApplyBuffDelta()
-
 end

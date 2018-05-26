@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.9.4-beta
       Project Date (UTC)  : 2015-07-13T16:47:34Z
       File Modified (UTC) : 2013-05-20T07:13:55Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
@@ -38,7 +38,6 @@ end
 local timeLastTick = nil
 
 local function OnVersionTick(hEvent)
-
 	-- If first tick of the session, send the version and initialise the timer
 	if not timeLastTick then
 		timeLastTick = Inspect.Time.Frame()
@@ -50,7 +49,6 @@ local function OnVersionTick(hEvent)
 		SendVersion()
 		timeLastTick = Inspect.Time.Frame()
 	end
-
 end
 
 Command.Event.Attach(Event.Message.Receive, OnMessageRecieved, "OnMessageRecieved")

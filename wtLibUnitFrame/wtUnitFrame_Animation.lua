@@ -2,21 +2,16 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.9.4-beta
       Project Date (UTC)  : 2015-07-13T16:47:34Z
       File Modified (UTC) : 2013-03-11T20:37:35Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
 local AddonId = toc.identifier
-
---[[
-
---]]
-
 
 local animatedFrames = {}
 local runningAnimations = {}
@@ -36,11 +31,8 @@ local function fnAnimate(frame, animation, value)
 	end
 end
 
-
 function WT.UnitFrame.EnableAnimation(rootFrame, animList)
-	
 	for idx, anim in ipairs(animList) do
-	
 		local animation = {}
 		animation.frame = rootFrame
 		animation.trigger = tostring(anim.trigger)
@@ -69,8 +61,18 @@ function WT.UnitFrame.EnableAnimation(rootFrame, animList)
 	table.insert(animatedFrames, rootFrame) 
 
 end
-
-local function OnTick(hEvent)
+local lastUnitAnimationRefreshTime = nil
+local bUnitAnimationRefreshTimeThrottle = 0.1
+local function AnimationStarter(frame, animation, value)
+	local job = coroutine.create(fnAnimate)
+	coroutine.resume(job, frame, animation, value)
+end
+local function AnimationWorker()
+	WT.WatchdogSleep()
+	if (lastUnitAnimationRefreshTime and ((Inspect.Time.Frame() - lastUnitAnimationRefreshTime) < bUnitAnimationRefreshTimeThrottle)) then
+		return
+	end
+	lastUnitAnimationRefreshTime = Inspect.Time.Frame()
 	for animation, _ in pairs(runningAnimations) do
 		local elapsed = Inspect.Time.Frame() - animation.startTime
 		while elapsed > animation.duration do
@@ -78,12 +80,15 @@ local function OnTick(hEvent)
 			animation.startTime = animation.startTime + animation.duration
 			animation.iteration = animation.iteration + 1
 			if animation.loopCount > 0 and animation.iteration > animation.loopCount then
-				fnAnimate(animation.frame, animation, nil)
+				AnimationStarter(animation.frame, animation, nil)
 			end
 		end
 		local progress = elapsed / animation.duration
 		animation.onTick(animation.frame.Elements, elapsed, elapsed / animation.duration) 
-	end 
+	end
+end
+local function OnTick(hEvent)
+	WT.runProcess(AnimationWorker)
 end
 
-Command.Event.Attach(Event.System.Update.Begin, OnTick, "AnimationTick")
+Command.Event.Attach(WT.Event.Tick, OnTick, "AnimationTick")

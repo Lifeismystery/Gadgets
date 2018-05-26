@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.9.4-beta
       Project Date (UTC)  : 2015-07-13T16:47:34Z
       File Modified (UTC) : 2015-07-13T11:42:28Z (lifeismystery)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
@@ -20,7 +20,6 @@ local FilterPanel = {}
 local FilterPanel_mt = { __index = FilterPanel }
 
 function data.CreateBuffFilterPanel(parent)
-
 	local panel = {}
 	setmetatable(panel, FilterPanel_mt)
 
@@ -60,7 +59,7 @@ function data.CreateBuffFilterPanel(parent)
 	panel.txtFilters = UI.CreateFrame("SimpleLifeTextArea", "txtFilters", panel.frmConfigInner)
 	panel.chkRemaining = UI.CreateFrame("SimpleLifeCheckbox", "chkRemaining", panel.frmConfigInner)
 	panel.txtRemaining = UI.CreateFrame("RiftTextfield", "txtRemaining", panel.frmConfigInner)
-	
+
 	panel.radGroupFilters = Library.LibSimpleWidgetsLifeEdition.RadioButtonGroup("radGroupInclude")
 	panel.radGroupFilters:AddRadioButton(panel.radInclude)
 	panel.radGroupFilters:AddRadioButton(panel.radExclude)
@@ -77,7 +76,7 @@ function data.CreateBuffFilterPanel(parent)
 	panel.chkShowDebuffCurse:SetText("Curses")
 	panel.chkShowDebuffDisease:SetText("Diseases")
 	panel.chkShowDebuffPoison:SetText("Poisons")
-	panel.chkShowDebuffOther:SetText("Other") 
+	panel.chkShowDebuffOther:SetText("Other")
 	panel.radInclude:SetText("Include Only:")
 	panel.radExclude:SetText("Exclude:")
 	panel.txtFilters:SetText("")
@@ -111,7 +110,7 @@ function data.CreateBuffFilterPanel(parent)
 	panel.txtRemaining:SetPoint("CENTERLEFT", panel.chkRemaining, "CENTERRIGHT", 0, 0)
 	panel.txtRemaining:SetBackgroundColor(0.2,0.2,0.2,1.0)
 	panel.txtRemaining:SetWidth(50)
-	lblRemaining:SetPoint("CENTERLEFT", panel.txtRemaining, "CENTERRIGHT", 0, 0)	
+	lblRemaining:SetPoint("CENTERLEFT", panel.txtRemaining, "CENTERRIGHT", 0, 0)
 
 	panel.chkShowMyDebuffs:SetPoint("LEFT", panel.frmConfigInner, "CENTERX")
 	panel.chkShowMyDebuffs:SetPoint("TOP", panel.chkShowMyBuffs, "TOP")
@@ -134,9 +133,7 @@ function data.CreateBuffFilterPanel(parent)
 	return panel
 end
 
-
 function FilterPanel.WriteToConfiguration(panel, config)
-
 	config.showMyBuffs = panel.chkShowMyBuffs:GetChecked()
 	config.showUnitBuffs = panel.chkShowUnitBuffs:GetChecked()
 	config.showOtherBuffs = panel.chkShowOtherBuffs:GetChecked()
@@ -151,7 +148,7 @@ function FilterPanel.WriteToConfiguration(panel, config)
 
 	config.limitRemaining = panel.chkRemaining:GetChecked()
 	config.limitRemainingSeconds = tonumber(panel.txtRemaining:GetText()) or 0
-	
+
 	if config.limitRemainingSeconds == 0 then config.limitRemaining = false end
 
 	if panel.radInclude:GetSelected() then
@@ -159,10 +156,8 @@ function FilterPanel.WriteToConfiguration(panel, config)
 	else
 		config.filterType = "exclude"
 	end
-	
-	config.filters = 
-	{
-	}
+
+	config.filters = {}
 
 	local filterlist = panel.txtFilters:GetText():wtSplit("\r")
 	for idx, buff in ipairs(filterlist) do
@@ -171,26 +166,25 @@ function FilterPanel.WriteToConfiguration(panel, config)
 			config.filters[blBuff] = true
 		end
 	end
-		
-	return config 
+
+	return config
 end
 
 function FilterPanel.ReadFromConfiguration(panel, config)
-
-	panel.chkShowMyBuffs:SetChecked(WT.Utility.ToBoolean(config.showMyBuffs)) 
+	panel.chkShowMyBuffs:SetChecked(WT.Utility.ToBoolean(config.showMyBuffs))
 	panel.chkShowUnitBuffs:SetChecked(WT.Utility.ToBoolean(config.showUnitBuffs))
 	panel.chkShowOtherBuffs:SetChecked(WT.Utility.ToBoolean(config.showOtherBuffs))
-	panel.chkShowPermanentBuffs:SetChecked(WT.Utility.ToBoolean(config.showPermanentBuffs)) 
-	panel.chkShowMyDebuffs:SetChecked(WT.Utility.ToBoolean(config.showMyDebuffs)) 
-	panel.chkShowUnitDebuffs:SetChecked(WT.Utility.ToBoolean(config.showUnitDebuffs)) 
-	panel.chkShowOtherDebuffs:SetChecked(WT.Utility.ToBoolean(config.showOtherDebuffs)) 
-	panel.chkShowDebuffCurse:SetChecked(WT.Utility.ToBoolean(config.showDebuffCurses)) 
-	panel.chkShowDebuffDisease:SetChecked(WT.Utility.ToBoolean(config.showDebuffDiseases)) 
+	panel.chkShowPermanentBuffs:SetChecked(WT.Utility.ToBoolean(config.showPermanentBuffs))
+	panel.chkShowMyDebuffs:SetChecked(WT.Utility.ToBoolean(config.showMyDebuffs))
+	panel.chkShowUnitDebuffs:SetChecked(WT.Utility.ToBoolean(config.showUnitDebuffs))
+	panel.chkShowOtherDebuffs:SetChecked(WT.Utility.ToBoolean(config.showOtherDebuffs))
+	panel.chkShowDebuffCurse:SetChecked(WT.Utility.ToBoolean(config.showDebuffCurses))
+	panel.chkShowDebuffDisease:SetChecked(WT.Utility.ToBoolean(config.showDebuffDiseases))
 	panel.chkShowDebuffPoison:SetChecked(WT.Utility.ToBoolean(config.showDebuffPoisons))
-	panel.chkShowDebuffOther:SetChecked(WT.Utility.ToBoolean(config.showDebuffOther)) 
+	panel.chkShowDebuffOther:SetChecked(WT.Utility.ToBoolean(config.showDebuffOther))
 
 	panel.chkRemaining:SetChecked(WT.Utility.ToBoolean(config.limitRemaining))
-	panel.txtRemaining:SetText(tostring(config.limitRemainingSeconds or "")) 
+	panel.txtRemaining:SetText(tostring(config.limitRemainingSeconds or ""))
 
 	if config.filterType == "include" then
 		panel.radInclude:SetSelected(true)
@@ -201,8 +195,6 @@ function FilterPanel.ReadFromConfiguration(panel, config)
 	local filterText = ""
 	for filter, active in pairs(config.filters or {}) do
 		if active then filterText = filterText .. filter .. "\r" end
-	end 
+	end
 	panel.txtFilters:SetText(filterText)
-
 end
-

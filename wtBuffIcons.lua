@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.1.3
       Project Date (UTC)  : 2012-08-07T01:23:40Z
       File Modified (UTC) : 2012-08-07T01:23:40Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
@@ -18,30 +18,25 @@ local initDone = false
 local dialog = false
 
 -- Initialiser waits until a Gadget is created before registering event handlers
--- This should be done in all gadgets to save on overhead when no gadget instances exist 
+-- This should be done in all gadgets to save on overhead when no gadget instances exist
 local function Init()
-	table.insert(WT.Event.PlayerAvailable, {OnPlayerAvailable, AddonId, "BuffIcons_OnPlayerAvailable"})	
+	table.insert(WT.Event.PlayerAvailable, {OnPlayerAvailable, AddonId, "BuffIcons_OnPlayerAvailable"})
 	initDone = true
 end
 
 local filterPanel = nil
-
 local selUnitToTrack = nil
 local chkTooltips = nil
 local chkCancel = nil
 local radGroupSort = nil
 local radSortUp = nil
 local radSortDown = nil
-
 local colorBuffBorder = nil
 local colorDebuffBorder = nil
-
 local colorBuffBackground = nil
 local colorDebuffBackground = nil
-
 local colorBuffText = nil
 local colorDebuffText = nil
-
 local sldIconSize = nil
 local sldMarginHorizontal = nil
 local sldMarginVertical = nil
@@ -58,21 +53,17 @@ local sldStackX = nil
 local sldStackY = nil
 local sldRows = nil
 local sldCols = nil
-
 local chkShowTimer = nil
 local chkShowStack = nil
-
 local chkEnableFlashing = nil
 local chkSplitDebuffs = nil
 local chkTextOutline = nil
 local chkSortByTime = nil
-
 local radFillFromTopLeft = nil
 local radFillFromTopRight = nil
 local radFillFromBottomLeft = nil
 local radFillFromBottomRight = nil
 local radGroupFillFrom = nil
-
 local chkUsePriority = nil
 local sldMyBuffPriority = nil
 local sldUnitBuffPriority = nil
@@ -86,10 +77,9 @@ local labOtherBuffPriority = nil
 local labMyDebuffPriority = nil
 local labUnitDebuffPriority = nil
 local labOtherDebuffPriority = nil
-
 local preview = nil
 
-local testBuff01 = 
+local testBuff01 =
 {
 	id = "example01",
 	icon = "Data/\\UI\\ability_icons\\discombobulate2a.dds",
@@ -97,8 +87,7 @@ local testBuff01 =
 	timerText = "15s",
 	debuff = false
 }
-
-local testBuff02 = 
+local testBuff02 =
 {
 	id = "example02",
 	icon = "Data/\\UI\\ability_icons\\plant1.dds",
@@ -106,8 +95,7 @@ local testBuff02 =
 	timerText = "5m",
 	debuff = true
 }
-
-local testBuff03 = 
+local testBuff03 =
 {
 	id = "example03",
 	icon = "Data/\\UI\\ability_icons\\arcaneshield4.dds",
@@ -115,8 +103,7 @@ local testBuff03 =
 	timerText = "49m",
 	debuff = false
 }
-
-local testBuff04 = 
+local testBuff04 =
 {
 	id = "example04",
 	icon = "Data/\\UI\\ability_icons\\planarite_gem_a.dds",
@@ -125,15 +112,13 @@ local testBuff04 =
 	debuff = true
 }
 
-
 local function UpdatePreview()
-
 	local configuration = data.BuffIcons_GetConfiguration()
 	preview.config = configuration
 	configuration.rows = 2
 	configuration.cols = 2
 
-	local slotHeight = configuration.iconSize + (configuration.borderWidth * 2) + configuration.paddingTop + configuration.paddingBottom 
+	local slotHeight = configuration.iconSize + (configuration.borderWidth * 2) + configuration.paddingTop + configuration.paddingBottom
 	local slotWidth = configuration.iconSize + (configuration.borderWidth * 2) + configuration.paddingLeft + configuration.paddingRight
 	local totalSlotHeight = configuration.rows * slotHeight
 	local totalSlotWidth = configuration.cols * slotWidth
@@ -143,8 +128,8 @@ local function UpdatePreview()
 	data.LayoutIcon(preview.icon01, configuration)
 	data.LayoutIcon(preview.icon02, configuration)
 	data.LayoutIcon(preview.icon03, configuration)
-	data.LayoutIcon(preview.icon04, configuration)	
-	
+	data.LayoutIcon(preview.icon04, configuration)
+
 	data.UpdateIcon(preview, preview.icon01, testBuff01)
 	data.UpdateIcon(preview, preview.icon02, testBuff02)
 	data.UpdateIcon(preview, preview.icon03, testBuff03)
@@ -161,13 +146,9 @@ local function UpdatePreview()
 
 	preview:SetWidth(16 + totalSlotWidth + totalMarginWidth)
 	preview:SetHeight(16 + totalSlotHeight + totalMarginHeight)
-
 end
 
-
-
 local function GetConfiguration()
-
 	local config = {}
 	config.unitSpec = selUnitToTrack:GetText()
 
@@ -175,16 +156,16 @@ local function GetConfiguration()
 
 	config.tooltips = chkTooltips:GetChecked()
 	config.cancel = chkCancel:GetChecked()
-	config.sortDescending = radSortDown:GetSelected()	
-	
+	config.sortDescending = radSortDown:GetSelected()
+
 	config.buffFontColour = { colorBuffText:GetColor() }
 	config.buffBorderColour = { colorBuffBorder:GetColor() }
 	config.buffBackground = { colorBuffBackground:GetColor() }
-	
+
 	config.debuffFontColour = { colorDebuffText:GetColor() }
 	config.debuffBorderColour = { colorDebuffBorder:GetColor() }
 	config.debuffBackground = { colorDebuffBackground:GetColor() }
-	
+
 	config.paddingTop = sldPaddingTop:GetPosition()
 	config.paddingLeft = sldPaddingLeft:GetPosition()
 	config.paddingBottom = sldPaddingBottom:GetPosition()
@@ -192,29 +173,29 @@ local function GetConfiguration()
 	config.marginHorizontal = sldMarginHorizontal:GetPosition()
 	config.marginVertical = sldMarginVertical:GetPosition()
 	config.borderWidth = sldBorderWidth:GetPosition()
-	config.timerFontSize = sldTimerSize:GetPosition() 
+	config.timerFontSize = sldTimerSize:GetPosition()
 	config.stackFontSize = sldStackSize:GetPosition()
 	config.timerX = sldTimerX:GetPosition()
 	config.timerY = sldTimerY:GetPosition()
 	config.stackX = sldStackX:GetPosition()
 	config.stackY = sldStackY:GetPosition()
-	
+
 	config.rows = sldRows:GetPosition()
 	config.cols = sldCols:GetPosition()
-	
+
 	config.timerAnchor = "TOPCENTER"
 	config.stackAnchor = "TOPCENTER"
 
 	config.showTimer = chkShowTimer:GetChecked()
 	config.showStack = chkShowStack:GetChecked()
-	
+
 	config.enableFlashing = chkEnableFlashing:GetChecked()
 	config.splitDebuffs = chkSplitDebuffs:GetChecked()
 	config.textOutline = chkTextOutline:GetChecked()
 	config.sortByTime = chkSortByTime:GetChecked()
-	
+
 	config.iconSize = sldIconSize:GetPosition()
-	
+
 	config.fillFrom = "TOPLEFT"
 	if radFillFromTopRight:GetSelected() then config.fillFrom = "TOPRIGHT" end
 	if radFillFromBottomLeft:GetSelected() then config.fillFrom = "BOTTOMLEFT" end
@@ -237,24 +218,22 @@ local function GetConfiguration()
 		config.unitDebuffPriority = 2
 		config.otherDebuffPriority = 3
 	end
-	
-	return config 
+
+	return config
 end
 data.BuffIcons_GetConfiguration = GetConfiguration
 
 local function SetConfiguration(config)
-
 	selUnitToTrack:SetText(config.unitSpec)
-
-	chkTooltips:SetChecked(WT.Utility.ToBoolean(config.tooltips)) 
+	chkTooltips:SetChecked(WT.Utility.ToBoolean(config.tooltips))
 	chkCancel:SetChecked(WT.Utility.ToBoolean(config.cancel))
-	
+
 	if config.sortDescending then
 		radSortDown:SetSelected(true)
 	else
 		radSortUp:SetSelected(true)
 	end
-	 
+
 	colorBuffBorder:SetColor(unpack(config.buffBorderColour))
 	colorBuffBackground:SetColor(unpack(config.buffBackground))
 	colorBuffText:SetColor(unpack(config.buffFontColour))
@@ -263,20 +242,20 @@ local function SetConfiguration(config)
 	colorDebuffBackground:SetColor(unpack(config.debuffBackground))
 	colorDebuffText:SetColor(unpack(config.debuffFontColour))
 
-	sldIconSize:SetPosition(config.iconSize) 
+	sldIconSize:SetPosition(config.iconSize)
 	sldPaddingTop:SetPosition(config.paddingTop)
 	sldPaddingLeft:SetPosition(config.paddingLeft)
-	sldPaddingBottom:SetPosition(config.paddingBottom) 
+	sldPaddingBottom:SetPosition(config.paddingBottom)
 	sldPaddingRight:SetPosition(config.paddingRight)
-	sldMarginHorizontal:SetPosition(config.marginHorizontal) 
-	sldMarginVertical:SetPosition(config.marginVertical) 
-	sldBorderWidth:SetPosition(config.borderWidth) 
-	sldTimerSize:SetPosition(config.timerFontSize or 10)  
-	sldStackSize:SetPosition(config.stackFontSize or 10) 
-	sldTimerX:SetPosition(config.timerX or 0) 
-	sldTimerY:SetPosition(config.timerY or 0) 
-	sldStackX:SetPosition(config.stackX or 0) 
-	sldStackY:SetPosition(config.stackY or 0) 
+	sldMarginHorizontal:SetPosition(config.marginHorizontal)
+	sldMarginVertical:SetPosition(config.marginVertical)
+	sldBorderWidth:SetPosition(config.borderWidth)
+	sldTimerSize:SetPosition(config.timerFontSize or 10)
+	sldStackSize:SetPosition(config.stackFontSize or 10)
+	sldTimerX:SetPosition(config.timerX or 0)
+	sldTimerY:SetPosition(config.timerY or 0)
+	sldStackX:SetPosition(config.stackX or 0)
+	sldStackY:SetPosition(config.stackY or 0)
 
 	chkShowTimer:SetChecked(WT.Utility.ToBoolean(config.showTimer))
 	chkShowStack:SetChecked(WT.Utility.ToBoolean(config.showStack))
@@ -285,9 +264,9 @@ local function SetConfiguration(config)
 	chkSplitDebuffs:SetChecked(WT.Utility.ToBoolean(config.splitDebuffs))
 	chkSortByTime:SetChecked(WT.Utility.ToBoolean(config.sortByTime))
 
-	sldRows:SetPosition(config.rows or 4) 
+	sldRows:SetPosition(config.rows or 4)
 	sldCols:SetPosition(config.cols or 4)
-	
+
 	chkUsePriority:SetChecked(WT.Utility.ToBoolean(config.usePriority) or false)
 	sldMyBuffPriority:SetPosition(config.myBuffPriority or 1)
 	sldUnitBuffPriority:SetPosition(config.unitBuffPriority or 2)
@@ -307,46 +286,40 @@ local function SetConfiguration(config)
 	end
 
 	filterPanel:ReadFromConfiguration(config)
-	
-	UpdatePreview()
 
+	UpdatePreview()
 end
 
-
 local function CreateSlider(parent, placeUnder, text, minRange, maxRange, default)
-	
 	local label = UI.CreateFrame("Text", "txtSlider", parent)
 	label:SetText(text)
 	label:SetPoint("TOPLEFT", placeUnder, "BOTTOMLEFT", 0, 4)
 	label:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 	label:SetFontColor(1,0.97,0.84,1)
 	label:SetFontSize(14)
-	
+
 	local slider = UI.CreateFrame("SimpleLifeSlider", "sldSlider", parent)
 	slider:SetRange(minRange, maxRange)
 	slider:SetPosition(default)
 	slider:SetPoint("TOPLEFT", label, "TOPLEFT", 96, 0)
 	slider.Event.SliderChange = UpdatePreview
 	slider:SetWidth(150)
-	
+
 	slider.Label = label
-	
+
 	return slider
-	
 end
 
-
 local function ConfigDialog(container)
-
 	local tabs = UI.CreateFrame("SimpleLifeTabView", "rfTabs", container)
 	tabs:SetPoint("TOPLEFT", container, "TOPLEFT")
 	tabs:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", 0, -32)
-	
+
 	local frmConfig = UI.CreateFrame("Frame", "rfConfig", tabs.tabContent)
 	local frmConfigInner = UI.CreateFrame("Frame", "bbConfigInner", frmConfig)
 	frmConfigInner:SetPoint("TOPLEFT", frmConfig, "TOPLEFT", 12, 12)
 	frmConfigInner:SetPoint("BOTTOMRIGHT", frmConfig, "BOTTOMRIGHT", -12, -12)
-	
+
 	local frmAppearance = UI.CreateFrame("Frame", "rfMacros", tabs.tabContent)
 	local frmAppearanceInner = UI.CreateFrame("Frame", "bbFiltersInner", frmAppearance)
 	frmAppearanceInner:SetPoint("TOPLEFT", frmAppearance, "TOPLEFT", 4, 4)
@@ -361,29 +334,29 @@ local function ConfigDialog(container)
 	local frmPriorityInner = UI.CreateFrame("Frame", "bbPriorityInner", frmPriority)
 	frmPriorityInner:SetPoint("TOPLEFT", frmPriority, "TOPLEFT", 12, 12)
 	frmPriorityInner:SetPoint("BOTTOMRIGHT", frmPriority, "BOTTOMRIGHT", -12, -12)
-	
+
 	tabs:SetTabPosition("top")
 	tabs:AddTab("Configuration", frmConfig)
-	tabs:AddTab("Icon Style", frmAppearance)	
-	tabs:AddTab("Grid Layout", frmLayout)	
+	tabs:AddTab("Icon Style", frmAppearance)
+	tabs:AddTab("Grid Layout", frmLayout)
 	tabs:AddTab("Priority", frmPriority)
 
-	selUnitToTrack = WT.Control.Select.Create(frmConfigInner, "Unit to Track:", "player", 
-	{ 
-		{text = "Player", value = "player"}, 
-		{text = "Target", value = "player.target"}, 
-		{text = "Target's Target", value = "player.target.target"}, 
-		{text = "Focus", value = "focus"}, 
-		{text = "Focus's Target", value = "focus.target"}, 
-		{text = "Pet", value = "player.pet"}, 
-		{text = "Pet's Target", value = "player.pet.target"}, 
+	selUnitToTrack = WT.Control.Select.Create(frmConfigInner, "Unit to Track:", "player",
+	{
+		{text = "Player", value = "player"},
+		{text = "Target", value = "player.target"},
+		{text = "Target's Target", value = "player.target.target"},
+		{text = "Focus", value = "focus"},
+		{text = "Focus's Target", value = "focus.target"},
+		{text = "Pet", value = "player.pet"},
+		{text = "Pet's Target", value = "player.pet.target"},
 	})
-		
+
 	chkTooltips = UI.CreateFrame("SimpleLifeCheckbox", "chkTooltips", frmConfig)
 	chkCancel = UI.CreateFrame("SimpleLifeCheckbox", "chkCancel", frmConfig)
 	chkTooltips:SetText("Show Tooltips");
 	chkCancel:SetText("Right Click to Cancel");
-	
+
 	radSortUp = UI.CreateFrame("SimpleLifeRadioButton", "radSortUp", frmConfigInner)
 	radSortDown = UI.CreateFrame("SimpleLifeRadioButton", "radSortDown", frmConfigInner)
 	radGroupSort = Library.LibSimpleWidgetsLifeEdition.RadioButtonGroup("radGroupSort")
@@ -391,7 +364,7 @@ local function ConfigDialog(container)
 	radGroupSort:AddRadioButton(radSortDown)
 	radSortUp:SetText("Ascending")
 	radSortDown:SetText("Descending")
-	
+
 	chkTooltips:SetChecked(true)
 	chkCancel:SetChecked(true)
 
@@ -413,7 +386,7 @@ local function ConfigDialog(container)
 	lblBuffColour:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 	lblBuffColour:SetFontColor(1,0.97,0.84,1)
 	lblBuffColour:SetFontSize(14)
-	
+
 	colorBuffBorder = WT.CreateColourPicker(frmAppearanceInner, 0.2,0.6,0.2,1.0)
 	colorBuffBorder:SetPoint("TOPLEFT", frmAppearanceInner, "TOPLEFT", 100, 10)
 
@@ -498,7 +471,7 @@ local function ConfigDialog(container)
 	chkTextOutline:SetChecked(true)
 	chkTextOutline:SetPoint("CENTERLEFT", sldBorderWidth, "CENTERRIGHT", 20, 0)
 	chkTextOutline.Event.CheckboxChange = UpdatePreview
-	
+
 	chkEnableFlashing = UI.CreateFrame("SimpleLifeCheckbox", "chkEnableFlashing", frmAppearanceInner)
 	chkEnableFlashing:SetText("Flash when close to expiry")
 	chkEnableFlashing:SetChecked(false)
@@ -510,12 +483,12 @@ local function ConfigDialog(container)
 	sldMarginVertical = CreateSlider(frmLayoutInner, sldMarginHorizontal.Label, "Vert Spacing:", 0, 32, 1)
 	sldRows = CreateSlider(frmLayoutInner, sldMarginVertical.Label, "Grid Rows:", 1, 32, 4)
 	sldCols = CreateSlider(frmLayoutInner, sldRows.Label, "Grid Columns:", 1, 32, 4)
-	
+
 	sldTimerX:SetWidth(350)
 	sldTimerY:SetWidth(350)
 	sldStackX:SetWidth(350)
 	sldStackY:SetWidth(350)
-	
+
 	local labFillFrom = UI.CreateFrame("Text", "labFillFrom", frmLayoutInner)
 	labFillFrom:SetText("Fill From:")
 	labFillFrom:SetPoint("TOPLEFT", sldCols.Label, "BOTTOMLEFT", 0, 12)
@@ -538,12 +511,12 @@ local function ConfigDialog(container)
 	radGroupFillFrom:AddRadioButton(radFillFromTopRight)
 	radGroupFillFrom:AddRadioButton(radFillFromBottomLeft)
 	radGroupFillFrom:AddRadioButton(radFillFromBottomRight)
-	
+
 	radFillFromTopLeft:SetPoint("TOPLEFT", labFillFrom, "TOPLEFT", 96, 0)
 	radFillFromTopRight:SetPoint("TOPLEFT", radFillFromTopLeft, "TOPLEFT", 100, 0)
 	radFillFromBottomLeft:SetPoint("TOPLEFT", radFillFromTopLeft, "BOTTOMLEFT", 0, 8)
 	radFillFromBottomRight:SetPoint("TOPLEFT", radFillFromBottomLeft, "TOPLEFT", 100, 0)
-	
+
 	radFillFromTopLeft:SetSelected(true)
 
 	chkSplitDebuffs = UI.CreateFrame("SimpleLifeCheckbox", "chkEnableFlashing", frmLayoutInner)
@@ -557,7 +530,7 @@ local function ConfigDialog(container)
 	chkSortByTime:SetText("Sort by Time Remaining")
 	chkSortByTime:SetChecked(false)
 	chkSortByTime:SetPoint("TOPLEFT", chkSplitDebuffs, "BOTTOMLEFT", 0, 8)
-	
+
 	preview = UI.CreateFrame("Frame", "frmBuffIconPreview", container)
 	preview:SetPoint("TOPLEFT", container, "TOPRIGHT", 25, 0)
 	preview:SetWidth(200)
@@ -572,13 +545,13 @@ local function ConfigDialog(container)
 
 	UpdatePreview()
 
-	colorBuffBorder.OnColorChanged = UpdatePreview 
-	colorDebuffBorder.OnColorChanged = UpdatePreview 
-	colorBuffText.OnColorChanged = UpdatePreview 
-	colorDebuffText.OnColorChanged = UpdatePreview 
-	colorBuffBackground.OnColorChanged = UpdatePreview 
-	colorDebuffBackground.OnColorChanged = UpdatePreview 
-	
+	colorBuffBorder.OnColorChanged = UpdatePreview
+	colorDebuffBorder.OnColorChanged = UpdatePreview
+	colorBuffText.OnColorChanged = UpdatePreview
+	colorDebuffText.OnColorChanged = UpdatePreview
+	colorBuffBackground.OnColorChanged = UpdatePreview
+	colorDebuffBackground.OnColorChanged = UpdatePreview
+
 	-- Priority Panel
 	chkUsePriority = UI.CreateFrame("SimpleLifeCheckbox", "chkUsePriority", frmPriority)
 	sldMyBuffPriority = UI.CreateFrame("SimpleLifeSlider", "sldMyBuffPriority", frmPriority)
@@ -591,33 +564,32 @@ local function ConfigDialog(container)
 	labMyBuffPriority:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 	labMyBuffPriority:SetFontColor(1,0.97,0.84,1)
 	labMyBuffPriority:SetFontSize(14)
-	--labMyBuffPriority:SetFont(AddonId, "blank-Bold")
+
 	labUnitBuffPriority = UI.CreateFrame("Text", "labUnitBuffPriority", frmPriority)
 	labUnitBuffPriority:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 	labUnitBuffPriority:SetFontColor(1,0.97,0.84,1)
 	labUnitBuffPriority:SetFontSize(14)
-	--labUnitBuffPriority:SetFont(AddonId, "blank-Bold")
+
 	labOtherBuffPriority = UI.CreateFrame("Text", "labOtherBuffPriority", frmPriority)
 	labOtherBuffPriority:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 	labOtherBuffPriority:SetFontColor(1,0.97,0.84,1)
 	labOtherBuffPriority:SetFontSize(14)
-	--labOtherBuffPriority:SetFont(AddonId, "blank-Bold")
+
 	labMyDebuffPriority = UI.CreateFrame("Text", "labMyDebuffPriority", frmPriority)
 	labMyDebuffPriority:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 	labMyDebuffPriority:SetFontColor(1,0.97,0.84,1)
 	labMyDebuffPriority:SetFontSize(14)
-	--labMyDebuffPriority:SetFont(AddonId, "blank-Bold")
+
 	labUnitDebuffPriority = UI.CreateFrame("Text", "labUnitDebuffPriority", frmPriority)
 	labUnitDebuffPriority:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 	labUnitDebuffPriority:SetFontColor(1,0.97,0.84,1)
 	labUnitDebuffPriority:SetFontSize(14)
-	--labUnitDebuffPriority:SetFont(AddonId, "blank-Bold")
+
 	labOtherDebuffPriority = UI.CreateFrame("Text", "labOtherDebuffPriority", frmPriority)
 	labOtherDebuffPriority:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 	labOtherDebuffPriority:SetFontColor(1,0.97,0.84,1)
 	labOtherDebuffPriority:SetFontSize(14)
-	--labOtherDebuffPriority:SetFont(AddonId, "blank-Bold")
-	
+
 	chkUsePriority:SetText("Prioritise buffs by source")
 	labMyBuffPriority:SetText("Buffs Cast by Player:")
 	labUnitBuffPriority:SetText("Buffs Cast by Unit:")
@@ -625,7 +597,7 @@ local function ConfigDialog(container)
 	labMyDebuffPriority:SetText("Debuffs Cast by Player:")
 	labUnitDebuffPriority:SetText("Debuffs Cast by Unit:")
 	labOtherDebuffPriority:SetText("Debuffs Cast by Anyone Else:")
-	
+
 	chkUsePriority:SetChecked(false)
 	sldMyBuffPriority:SetRange(1, 6)
 	sldUnitBuffPriority:SetRange(1, 6)
@@ -645,7 +617,7 @@ local function ConfigDialog(container)
 	sldMyDebuffPriority:SetWidth(220)
 	sldUnitDebuffPriority:SetWidth(220)
 	sldOtherDebuffPriority:SetWidth(220)
-	
+
 	chkUsePriority:SetPoint("TOPLEFT", frmPriorityInner, "TOPLEFT", 0, 4)
 	labMyBuffPriority:SetPoint("TOPLEFT", chkUsePriority, "BOTTOMLEFT", 0, 4)
 	sldMyBuffPriority:SetPoint("TOPLEFT", labMyBuffPriority, "BOTTOMLEFT")
@@ -653,7 +625,7 @@ local function ConfigDialog(container)
 	sldUnitBuffPriority:SetPoint("TOPLEFT", labUnitBuffPriority, "BOTTOMLEFT")
 	labOtherBuffPriority:SetPoint("TOPLEFT", sldUnitBuffPriority, "BOTTOMLEFT", 0, 4)
 	sldOtherBuffPriority:SetPoint("TOPLEFT", labOtherBuffPriority, "BOTTOMLEFT")
-	
+
 	labMyDebuffPriority:SetPoint("TOP", labMyBuffPriority, "TOP")
 	labMyDebuffPriority:SetPoint("LEFT", frmPriorityInner, "CENTERX")
 	sldMyDebuffPriority:SetPoint("TOPLEFT", labMyDebuffPriority, "BOTTOMLEFT")
@@ -661,25 +633,23 @@ local function ConfigDialog(container)
 	sldUnitDebuffPriority:SetPoint("TOPLEFT", labUnitDebuffPriority, "BOTTOMLEFT")
 	labOtherDebuffPriority:SetPoint("TOPLEFT", sldUnitDebuffPriority, "BOTTOMLEFT", 0, 4)
 	sldOtherDebuffPriority:SetPoint("TOPLEFT", labOtherDebuffPriority, "BOTTOMLEFT")
-
 end
 
 local function OnPlayerAvailable()
 end
 
---if WT.VersionCheck("Gadgets", 0, 3, 78) then
-	WT.Gadget.RegisterFactory("BuffIcons",
+WT.Gadget.RegisterFactory("BuffIcons",
 	{
 		name="Buff Icons",
 		description="Buff Icons Gadget",
 		author="Wildtide",
 		version="1.0.0",
 		iconTexAddon = AddonId,
-		iconTexFile = "img/wtBuffIcons.png",
+		iconTexFile = "img/menuIcons/wtBuffIcons.png",
 		["Create"] = WT.Gadget.ConfigureBuffIcons,
 		["Reconfigure"] = WT.Gadget.ConfigureBuffIcons,
 		["ConfigDialog"] = ConfigDialog,
-		["GetConfiguration"] = GetConfiguration, 
-		["SetConfiguration"] = SetConfiguration, 
+		["GetConfiguration"] = GetConfiguration,
+		["SetConfiguration"] = SetConfiguration,
 	})
---end
+

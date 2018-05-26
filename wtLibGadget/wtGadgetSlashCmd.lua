@@ -2,18 +2,17 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.9.4-beta
       Project Date (UTC)  : 2015-07-13T16:47:34Z
       File Modified (UTC) : 2013-01-04T22:17:01Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
 local AddonId = toc.identifier
 local TXT = Library.Translate
-
 
 WT.Gadget.Command = {}
 
@@ -43,7 +42,7 @@ end
 
 function WT.Gadget.Command.list()
 	for gadgetId,config in pairs(wtxGadgets) do
-		print(string.format("Gadget: %s (%s)", gadgetId, config.type)) 
+		print(string.format("Gadget: %s (%s)", gadgetId, config.type))
 	end
 end
 
@@ -51,16 +50,13 @@ function WT.Gadget.Command.delete(gadgetId)
 	WT.Gadget.Delete(gadgetId)
 end
 
-
 function WT.Gadget.Command.modify(gadgetId)
 	WT.Gadget.Modify(gadgetId)
 end
 
-
 function WT.Gadget.Command.reset()
 	WT.Gadget.ResetButton()
 end
-
 
 function WT.Gadget.Command.unlock()
 	WT.Gadget.UnlockAll()
@@ -76,7 +72,7 @@ end
 
 function WT.Gadget.Command.grid(gridSize)
 	local gs = tonumber(gridSize) or 1
-	if (gs < 1) then gs = 1 end	
+	if (gs < 1) then gs = 1 end
 	WT.Gadget.GridSize = gs
 	Command.Console.Display("general", true, "Gadgets grid snapping set to " .. gs .. " pixels", false)
 end
@@ -120,4 +116,3 @@ end
 
 table.insert(Command.Slash.Register("gadget"), { WT.Gadget.OnSlashCommand, AddonId, AddonId .. "_OnSlashCommand1" })
 table.insert(Command.Slash.Register("gadgets"), { WT.Gadget.OnSlashCommand, AddonId, AddonId .. "_OnSlashCommand2" })
-

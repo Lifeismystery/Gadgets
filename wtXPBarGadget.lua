@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.3.100
       Project Date (UTC)  : 2013-03-01T00:08:19Z
       File Modified (UTC) : 2013-02-28T08:20:03Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
@@ -17,7 +17,6 @@ local TXT = Library.Translate
 local XBG = {}
 
 -- wtXPPercent Gadget - a simple % display of current XP
-
 local xpGadgets = {}
 local paGadgets = {}
 local prGadgets = {}
@@ -28,14 +27,13 @@ local paDetails = nil
 local iconRestedAddon = "Rift"
 local iconRestedFile = "indicator_friendlyNPC.png.dds"
 
-local MAX_CH_LEVEL = 65
+--local MAX_CH_LEVEL = 70
 
 local PA_T2_CAP = 628
 local PA_T3_CAP = 1079
 
 local PA_T2_EXP = PA_T2_CAP*((PA_T2_CAP*1219)+98781)
 local PA_T3_EXP = PA_T3_CAP*((PA_T3_CAP*1219)+98781)
-
 local PA_T3_ONLY = PA_T3_EXP - PA_T2_EXP
 
 local MAX_PA_LEVEL = PA_T3_CAP
@@ -66,9 +64,9 @@ function XBG.OnPAChange(h, accum)
 				end
 			else
 				if gadget.barRested then gadget.barRested:SetVisible(false) end
-			end		
+			end
 			if gadget.text then
-				local unspent = ""	
+				local unspent = ""
 				local pa_cur = 0
 				local pa_req = 0
 				if paDetails.available then
@@ -78,9 +76,9 @@ function XBG.OnPAChange(h, accum)
 					pa_cur = accum
 					pa_req = paDetails.needed
 				else
-					local pa_pts = paDetails.spent+paDetails.available					
+					local pa_pts = paDetails.spent+paDetails.available
 					pa_cur = (pa_pts*((pa_pts*1219)+98781))+accum
-					
+
 					if gadget.pat3 then
 						pa_req = PA_T3_ONLY
 						if pa_cur >= PA_T2_EXP then
@@ -92,7 +90,7 @@ function XBG.OnPAChange(h, accum)
 						pa_req = MAX_PAXP_REQ
 					end
 				end
-				
+
 				percent = (pa_cur / pa_req)
 				gadget.bar:SetPoint("BOTTOMRIGHT", gadget, percent, 1.0)
 				percent = percent*100
@@ -100,7 +98,7 @@ function XBG.OnPAChange(h, accum)
 					gadget.text:SetText(string.format("[PA#: %d] %s/%s %s(%.2f%%)", paDetails.spent+paDetails.available+1, WT.Utility.NumberComma(pa_cur), WT.Utility.NumberComma(pa_req), unspent, percent))
 				else
 					gadget.text:SetText(string.format("[PA#: %d] %s/%s %s(%.2f%%)", paDetails.spent+paDetails.available+1, WT.Utility.NumberDesc(pa_cur), WT.Utility.NumberDesc(pa_req), unspent, percent))
-				end				
+				end
 			end
 		end
 	end
@@ -125,7 +123,6 @@ function XBG.OnPrestige(h, accum)
 	end
 	-- Fix for strange error with nil needed value (API bug?)
 	prDetails.needed = prDetails.needed or 1
-	
 	local percent = (accum/prDetails.needed) * 100
 	for idx, gadget in ipairs(prGadgets) do
 		gadget.bar:SetPoint("BOTTOMRIGHT", gadget, accum/prDetails.needed, 1.0)
@@ -141,128 +138,115 @@ end
 
 function XBG.RankChange(h)
 	prDetails = Inspect.Pvp.Prestige()
-	XBG.OnPrestige(0, prDetails.accumulated)	
+	XBG.OnPrestige(0, prDetails.accumulated)
 end
 
 function XBG.OnExperience(h, accum, rested, needed)
 	if not accum then return end
 	if not needed then return end
-	
 	local pLevel = Inspect.Unit.Detail("player").level
-	if pLevel == MAX_CH_LEVEL then
-		needed = -1
-	end	
-
-	
-	if needed == -1 then
-		for idx, gadget in ipairs(xpGadgets) do
-			gadget.bar:SetPoint("BOTTOMRIGHT", gadget, 1.0, 1.0)
-			if gadget.text then
-				gadget.text:SetText(string.format("MAX Level: %d", pLevel))
-			end
-		end
-	else
-		local percent = (accum / needed) * 100
-		
-		local percentRested = 0
-		if rested and rested > accum then percentRested = (rested / needed) end
-		
-		local percentString = string.format("%i", math.floor(percent)) .. "%"
-		for idx, gadget in ipairs(xpGadgets) do
-			gadget.bar:SetPoint("BOTTOMRIGHT", gadget, accum / needed, 1.0)
-			if percentRested > 0 then
-				if gadget.barRested then
-					gadget.barRested:SetPoint("BOTTOMRIGHT", gadget, percentRested, 1.0)
-					gadget.barRested:SetVisible(true)
+	if pLevel then
+		if needed == 0 then
+			for idx, gadget in ipairs(xpGadgets) do
+				gadget.bar:SetPoint("BOTTOMRIGHT", gadget, 1.0, 1.0)
+				if gadget.text then
+					gadget.text:SetText(string.format("MAX Level: %d", pLevel))
 				end
-
-				gadget.iconRested:SetPoint("TOPCENTER", gadget, percentRested, 1.0, 0, -18)
-				-- gadget.iconRested:SetVisible(true)
-				-- Icon doesn't look right yet, will fix later
-			else
-				if gadget.barRested then gadget.barRested:SetVisible(false) end
-				gadget.iconRested:SetVisible(false)
 			end
-			if gadget.text then
-				if gadget.textType then
-					gadget.text:SetText(string.format("[Level: %d] %s/%s (%.2f%%)", pLevel, WT.Utility.NumberComma(accum), WT.Utility.NumberComma(needed), percent))
+		else
+			local percent = (accum / needed) * 100
+			local percentRested = 0
+			if rested and rested > accum then percentRested = (rested / needed) end
+			local percentString = string.format("%i", math.floor(percent)) .. "%"
+			for idx, gadget in ipairs(xpGadgets) do
+				gadget.bar:SetPoint("BOTTOMRIGHT", gadget, accum / needed, 1.0)
+				if percentRested > 0 then
+					if gadget.barRested then
+						gadget.barRested:SetPoint("BOTTOMRIGHT", gadget, percentRested, 1.0)
+						--gadget.barRested:SetVisible(true)
+					end
+					gadget.iconRested:SetPoint("TOPCENTER", gadget, percentRested, 1.0, 0, -18)
 				else
-					gadget.text:SetText(string.format("[Level: %d] %s/%s (%.2f%%)", pLevel, WT.Utility.NumberDesc(accum), WT.Utility.NumberDesc(needed), percent))
+					if gadget.barRested then gadget.barRested:SetVisible(false) end
+					gadget.iconRested:SetVisible(false)
+				end
+				if gadget.text then
+					if gadget.textType then
+						gadget.text:SetText(string.format("[Level: %d] %s/%s (%.2f%%)", pLevel, WT.Utility.NumberComma(accum), WT.Utility.NumberComma(needed), percent))
+					else
+						gadget.text:SetText(string.format("[Level: %d] %s/%s (%.2f%%)", pLevel, WT.Utility.NumberDesc(accum), WT.Utility.NumberDesc(needed), percent))
+					end
 				end
 			end
 		end
-	end
+	end	
 end
 
---"SecondaryBar_ICD.dds"
---"TextBkgnd.png.dds"
---"GuildsManager_XP_overlay.png.dds"
---"expBarFrame.png.dds"
---"AB_bg_1.png.dds"
 function XBG.Create(configuration)
-
 	local wrapper = UI.CreateFrame("Texture", WT.UniqueName("wtXP"), WT.Context)
 	wrapper:SetWidth(510)
 	wrapper:SetHeight(10)
 	if not configuration.TransparentBackground then
 		wrapper:SetTexture("Gadgets", "img/wtXPBar.tga")
-	else 
+		--wrapper:SetTexture("Rift", "GuildsManager_XP_overlay.png.dds")
+		--wrapper:SetTexture("Rift", "GuildsManager_XP_base.png.dds")
+	else
 		wrapper:SetBackgroundColor(0.07,0.07,0.07,0.85)
 	end
 	wrapper.font = Library.Media.GetFont(configuration.font)
 	wrapper.textFontSize = configuration.fontSize
-	
-				  top = UI.CreateFrame("Frame", "TopBorder", wrapper)
-				  top:SetBackgroundColor(0,0,0,1)
-				  top:SetLayer(1)
-				  top:ClearAll()
-				  top:SetPoint("BOTTOMLEFT", wrapper, "TOPLEFT", -1, 0)
-				  top:SetPoint("BOTTOMRIGHT", wrapper, "TOPRIGHT", 1, 0)
-				  top:SetHeight(1)
-				  
-				  bottom = UI.CreateFrame("Frame", "BottomBorder", wrapper)
-				  bottom:SetBackgroundColor(0,0,0,1)
-				  bottom:SetLayer(1)
-				  bottom:ClearAll()
-				  bottom:SetPoint("TOPLEFT", wrapper, "BOTTOMLEFT", -1, 0)
-				  bottom:SetPoint("TOPRIGHT", wrapper, "BOTTOMRIGHT",1, 0)
-				  bottom:SetHeight(1)
-				  
-				  left = UI.CreateFrame("Frame", "LeftBorder", wrapper)
-				  left:SetBackgroundColor(0,0,0,1)
-				  left:SetLayer(1)
-				  left:ClearAll()
-				  left:SetPoint("TOPRIGHT", wrapper, "TOPLEFT", 0, -1)
-				  left:SetPoint("BOTTOMRIGHT", wrapper, "BOTTOMLEFT", 0, 1)
-				  left:SetWidth(1)
-				  
-				  right = UI.CreateFrame("Frame", "RightBorder", wrapper)
-				  right:SetBackgroundColor(0,0,0,1)
-				  right:SetLayer(1)
-				  right:ClearAll()
-				  right:SetPoint("TOPLEFT", wrapper, "TOPRIGHT", 0, -1)
-				  right:SetPoint("BOTTOMLEFT", wrapper, "BOTTOMRIGHT", 0, 1)
-				  right:SetWidth(1)
-	
+
+	local top = UI.CreateFrame("Frame", "TopBorder", wrapper)
+	top:SetBackgroundColor(0,0,0,1)
+	top:SetLayer(1)
+	top:ClearAll()
+	top:SetPoint("BOTTOMLEFT", wrapper, "TOPLEFT", -1, 0)
+	top:SetPoint("BOTTOMRIGHT", wrapper, "TOPRIGHT", 1, 0)
+	top:SetHeight(1)
+
+	local bottom = UI.CreateFrame("Frame", "BottomBorder", wrapper)
+	bottom:SetBackgroundColor(0,0,0,1)
+	bottom:SetLayer(1)
+	bottom:ClearAll()
+	bottom:SetPoint("TOPLEFT", wrapper, "BOTTOMLEFT", -1, 0)
+	bottom:SetPoint("TOPRIGHT", wrapper, "BOTTOMRIGHT",1, 0)
+	bottom:SetHeight(1)
+
+	local left = UI.CreateFrame("Frame", "LeftBorder", wrapper)
+	left:SetBackgroundColor(0,0,0,1)
+	left:SetLayer(1)
+	left:ClearAll()
+	left:SetPoint("TOPRIGHT", wrapper, "TOPLEFT", 0, -1)
+	left:SetPoint("BOTTOMRIGHT", wrapper, "BOTTOMLEFT", 0, 1)
+	left:SetWidth(1)
+
+	local right = UI.CreateFrame("Frame", "RightBorder", wrapper)
+	right:SetBackgroundColor(0,0,0,1)
+	right:SetLayer(1)
+	right:ClearAll()
+	right:SetPoint("TOPLEFT", wrapper, "TOPRIGHT", 0, -1)
+	right:SetPoint("BOTTOMLEFT", wrapper, "BOTTOMRIGHT", 0, 1)
+	right:SetWidth(1)
+
 	local bar = UI.CreateFrame("Texture", WT.UniqueName("wtXP"), wrapper)
 	bar:SetPoint("TOPLEFT", wrapper, "TOPLEFT")
 	bar:SetPoint("BOTTOMRIGHT", wrapper, 0.5, 1.0)
-	
+
 	if configuration.texture == nil then
 		configuration.texture = "wtBantoBar"
 	end
-	
+
 	Library.Media.SetTexture(bar, configuration.texture)
 	wrapper.bar = bar
-	
+
 	if configuration.xpType == nil then
 		configuration.xpType = "XP"
 	end
-	
+
 	if configuration.colBar == nil then
 		configuration.colBar = {0,0.8,0,0.4}
 	end
-	
+
 	bar:SetBackgroundColor(unpack(configuration.colBar))
 
 	if configuration.tintRested then
@@ -279,16 +263,16 @@ function XBG.Create(configuration)
 	rested:SetTexture(iconRestedAddon, iconRestedFile)
 	rested:SetVisible(false)
 	wrapper.iconRested = rested
-	
+
 	if configuration.showText == false then
-			local txt = UI.CreateFrame("Text", WT.UniqueName("wtXP"), bar)
+		local txt = UI.CreateFrame("Text", WT.UniqueName("wtXP"), bar)
 		txt:SetFontColor(unpack(configuration.colBar))
 		txt:SetFontSize(0)
 		txt:SetPoint("CENTER", wrapper, "CENTER")
 		wrapper.textType = configuration.showFullText
 		wrapper.text = txt
 	end
-	
+
 	if configuration.showText then
 		local txt = UI.CreateFrame("Text", WT.UniqueName("wtXP"), bar)
 		txt:SetFontColor(1,1,1,1)
@@ -321,33 +305,31 @@ function XBG.Create(configuration)
 		table.insert(paGadgets, wrapper)
 	elseif configuration.xpType == "PRXP" then
 		table.insert(prGadgets, wrapper)
-	end	
+	end
 
 	XBG.OnExperience(0, Inspect.TEMPORARY.Experience())
-	
-	return wrapper, { resizable={100, 8, 1500, 40 } } 
+
+	return wrapper, { resizable={100, 8, 1500, 40 } }
 end
 
 local dialog = false
 
-function XBG.ConfigDialog(container)	
-
+function XBG.ConfigDialog(container)
 	local lMedia = Library.Media.FindMedia("bar")
 	local listMedia = {}
 	for mediaId, media in pairs(lMedia) do
 		table.insert(listMedia, { ["text"]=mediaId, ["value"]=mediaId })
 	end
-	
+
 	local lfont = Library.Media.GetFontIds("font")
 	local listfont = {}
 	for v, k in pairs(lfont) do
 		table.insert(listfont, { value=k })
 	end
-	
+
 	dialog = WT.Dialog(container)
 		:Label("Resizable XP Bar Gadget")
 		:Checkbox("showText", "Show Text", false)
-		--:Checkbox("largeText", "Large Text", false)
 		:Checkbox("showFullText", "Show Full XP Values", false)
 		:Checkbox("tintRested", "Tint Rested XP on Bar", false)
 		:Combobox("xpType", "XP Type", "XP",
@@ -363,7 +345,7 @@ function XBG.ConfigDialog(container)
 		:Checkbox("TransparentBackground", "Transparent Background", false)
 		:Checkbox("outlineTextLight", "Show outline(light) text", false)
 		:Select("font", "Font", "#Default", lfont, true)
-		:Slider("fontSize", "Font Size", 14, true)	
+		:Slider("fontSize", "Font Size", 14, true)
 		:Checkbox("aboveBar", "Text above bar", false)
 end
 
@@ -384,30 +366,31 @@ WT.Gadget.RegisterFactory("XPBar",
 		texture = "MediaID for the texture, for use with LibMedia",
 		["Create"] = XBG.Create,
 		["ConfigDialog"] = XBG.ConfigDialog,
-		["GetConfiguration"] = XBG.GetConfiguration, 
-		["SetConfiguration"] = XBG.SetConfiguration, 
+		["GetConfiguration"] = XBG.GetConfiguration,
+		["SetConfiguration"] = XBG.SetConfiguration,
 	})
 
 function XBG.OnPlayerAvailable(h)
 	XBG.OnExperience(0, Inspect.TEMPORARY.Experience())
-	
 	local prestige = Inspect.Pvp.Prestige()
 	if prestige and prestige.accumulated then
 		XBG.OnPrestige(0,prestige.accumulated)
 	else
 		XBG.OnPrestige(0,0)
 	end
-	
+
 	local attunement = Inspect.Attunement.Progress()
 	if attunement and attunement.accumulated then
 		XBG.OnPAChange(0,attunement.accumulated)
 	else
 		XBG.OnPAChange(0,0)
-	end	
+	end
 end
-
+function XBG.OnExperience2(h)
+	XBG.OnExperience(0, Inspect.TEMPORARY.Experience())
+end
 Command.Event.Attach(WT.Event.PlayerAvailable, XBG.OnPlayerAvailable, "XPBarGadget_OnPlayerAvailable")	
-Command.Event.Attach(Event.TEMPORARY.Experience, XBG.OnExperience, "OnExperienceBar")
+Command.Event.Attach(WT.Event.Tick, XBG.OnExperience2, "OnExperienceBar")
 Command.Event.Attach(Event.Pvp.Prestige.Accumulated, XBG.OnPrestige, "Event.Pvp.Prestige.Accumulated")
 Command.Event.Attach(Event.Pvp.Prestige.Rank, XBG.RankChange, "Event.Pvp.Prestige.Rank")
 Command.Event.Attach(Event.Attunement.Progress.Accumulated, XBG.OnPAChange, "Inspect.Attunement.Progress")

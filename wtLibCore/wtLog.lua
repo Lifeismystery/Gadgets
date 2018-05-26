@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.9.4-beta
       Project Date (UTC)  : 2015-07-13T16:47:34Z
       File Modified (UTC) : 2013-05-20T07:13:55Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
@@ -36,7 +36,7 @@ local function ScanForConsole(hEvent)
 			end
 		end
 		needScan = false
-	end		
+	end
 end
 
 Command.Event.Attach(Event.Unit.Availability.Full, ScanForConsole, "OnAddonStartupEnd")
@@ -78,7 +78,7 @@ local function LogWrite(severity, message)
 
 	local colour = logColours[severity] or "#ffffff"
 	Command.Console.Display(
-		wtLogConsoleId or "general", 
+		wtLogConsoleId or "general",
 		true,
 		string.format("<font color='%s'><b>%s</b>: %s</font>", colour, severity, message),
 		true
@@ -107,7 +107,6 @@ function WT.Log.Error(msg)
 	if WT.Log.Level >= 1 then LogWrite("ERR", msg) end
 end
 
-
 function WT.Command.log(args)
 
 	local numArgs = table.getn(args)
@@ -128,6 +127,4 @@ function WT.Command.log(args)
 	if WT.Log.Level == 4 then level = "Debug" end
 	if WT.Log.Level >= 5 then level = "Verbose" end
 	print(string.format("WT Log Level %d - %s", WT.Log.Level, level))
-
 end
-

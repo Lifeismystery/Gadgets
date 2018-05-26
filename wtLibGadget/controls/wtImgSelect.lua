@@ -2,29 +2,27 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.9.4-beta
       Project Date (UTC)  : 2015-07-13T16:47:34Z
       File Modified (UTC) : 2015-07-13T08:46:59Z (lifeismystery)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
 local AddonId = toc.identifier
 local TXT = Library.Translate
 
-
-
 WT.Control.ImgSelect = {}
-WT.Control.ImgSelect_mt = 
-{ 
+WT.Control.ImgSelect_mt =
+{
 	__index = function(tbl,name)
 		if tbl.frameIndex[name] then return tbl.frameIndex[name] end
-		if WT.Control.ImgSelect[name] then return WT.Control.ImgSelect[name] end  
+		if WT.Control.ImgSelect[name] then return WT.Control.ImgSelect[name] end
 		if WT.Control[name] then return WT.Control[name] end
-		return nil  
-	end 
+		return nil
+	end
 }
 
 local function UpdateTexture(frame, mediaId)
@@ -36,7 +34,7 @@ function WT.Control.ImgSelect.Create(parent, label, default, mediaTag, onchange)
 
 	local control = UI.CreateFrame("Frame", WT.UniqueName("Control"), parent)
 	control.frameIndex = getmetatable(control).__index
-	setmetatable(control, WT.Control.ImgSelect_mt) 
+	setmetatable(control, WT.Control.ImgSelect_mt)
 
 	local tfValue = UI.CreateFrame("Text", WT.UniqueName("GadgetControlUnitSpecImgSelector_TextField"), control)
 	tfValue:SetText(default or "")
@@ -45,10 +43,9 @@ function WT.Control.ImgSelect.Create(parent, label, default, mediaTag, onchange)
 	tfValue:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 	tfValue:SetFontColor(1,0.97,0.84,1)
 	tfValue:SetFontSize(14)
-	--tfValue:SetFont(AddonId, "blank-Bold")
 
 	local texTexture = UI.CreateFrame("Texture", WT.UniqueName("GadgetControlUnitSpecImgSelector_Texture"), control)
-	texTexture:SetWidth(128)	
+	texTexture:SetWidth(128)
 	texTexture:SetHeight(128)
 	texTexture:SetBackgroundColor(0, 0, 0, 0)
 
@@ -60,10 +57,9 @@ function WT.Control.ImgSelect.Create(parent, label, default, mediaTag, onchange)
 		txtLabel:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 		txtLabel:SetFontColor(1,0.97,0.84,1)
 		txtLabel:SetFontSize(14)
-		--txtLabel:SetFont(AddonId, "blank-Bold")		
 	else
 		tfValue:SetPoint("TOPLEFT", control, "TOPLEFT", 0, 0)
-	end	
+	end
 	texTexture:SetPoint("TOPLEFT", tfValue, "BOTTOMLEFT", 0, 2)
 
 	local dropDownIcon = UI.CreateFrame("Texture", WT.UniqueName("GadgetControlUnitSpecImgSelector_Dropdown"), tfValue)
@@ -86,15 +82,14 @@ function WT.Control.ImgSelect.Create(parent, label, default, mediaTag, onchange)
 	end, "Event.UI.Input.Mouse.Left.Click")
 
 	control.GetText = function() return tfValue:GetText() end
-	control.SetText = 
-		function(ctrl, value) 
+	control.SetText =
+		function(ctrl, value)
 			tfValue:SetText(tostring(value))
-			UpdateTexture(texTexture, value) 
-			if onchange then onchange(tostring(value)) end 
+			UpdateTexture(texTexture, value)
+			if onchange then onchange(tostring(value)) end
 		end
-		
+
 	control:SetHeight(136)
-		
+
 	return control
-			
 end

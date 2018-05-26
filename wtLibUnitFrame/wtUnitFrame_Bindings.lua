@@ -1,7 +1,6 @@
 local toc, data = ...
 local AddonId = toc.identifier
 
-
 -- Creates a binding from a property to an object method
 function WT.UnitFrame:CreateBinding(property, bindToObject, bindToMethod, default, converter)
 	WT.Log.Debug(self.UnitSpec .. ": Creating binding for " .. property)
@@ -13,39 +12,37 @@ function WT.UnitFrame:CreateBinding(property, bindToObject, bindToMethod, defaul
 	binding.default = default
 	binding.converter = converter
 	-- Add the binding to the UnitFrame's bindings list
-	if not self.Bindings[property] then self.Bindings[property] = {} end	
+	if not self.Bindings[property] then self.Bindings[property] = {} end
 	table.insert(self.Bindings[property], binding)
 end
-
 
 local function CommaFormat(n)
 	local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
 	return left..(num:reverse():gsub('(%d%d%d)','%1,'):reverse())..right
 end
 
-
 local function NumberFormat(tokenValue)
 
 	local numFormat = wtxOptions.numberFormat or "short"
 
 	tokenValue = math.ceil(tokenValue)
-	
+
 	if numFormat == "long" then
 		tokenValue = CommaFormat(tokenValue)
 	end
-	
+
 	if numFormat == "short" then
-		if (tokenValue >= 1000000) then 
-			tokenValue = CommaFormat(string.format("%.1f", tokenValue / 1000000)) .. "M" 
+		if (tokenValue >= 1000000000) then 
+			tokenValue = tostring(CommaFormat(string.format("%.1f", tokenValue / 1000000000)) .. "B")
+		elseif (tokenValue >= 1000000) then 
+			tokenValue = tostring(CommaFormat(string.format("%.1f", tokenValue / 1000000)) .. "M")
 		elseif tokenValue >= 10000 then
-			tokenValue = CommaFormat(string.format("%.1f", tokenValue / 1000)) .. "K"
+			tokenValue = tostring(CommaFormat(string.format("%.1f", tokenValue / 1000)) .. "K")
 		end 
 	end
-	
-	return tokenValue
-	
-end
 
+	return tokenValue
+end
 
 -- Creates a binding from a token string
 function WT.UnitFrame:CreateTokenBinding(tokenString, bindToObject, bindToMethod, default, maxLength)
@@ -59,7 +56,7 @@ function WT.UnitFrame:CreateTokenBinding(tokenString, bindToObject, bindToMethod
 	
 	if tokenCount == 0 then
 		-- This is just a static text label, there are no tokens in it
-		bindToObject:SetText(tokenString)
+		bindToObject:SetText(tostring(tokenString))
 		return
 	end
 	
@@ -68,7 +65,7 @@ function WT.UnitFrame:CreateTokenBinding(tokenString, bindToObject, bindToMethod
 			bindToMethod(bindToObject, default)
 			return 
 		end
-		local text = tokenString
+		local text = tostring(tokenString)
 		for token in pairs(tokens) do
 			if not self.Unit[token] then 
 				bindToMethod(bindToObject, default)
@@ -92,7 +89,6 @@ function WT.UnitFrame:CreateTokenBinding(tokenString, bindToObject, bindToMethod
 		-- Uses standard bindings to trigger the binding function above
 		self:CreateBinding(dependency, bindToObject, fn, default)
 	end
-
 end
 
 -- Applies the default values to all bindings on this unit frame
@@ -100,13 +96,14 @@ function WT.UnitFrame:ApplyDefaultBindings()
 	if self.Bindings then
 		for property, bindings in pairs(self.Bindings) do
 			for idx, binding in pairs(bindings) do
-				WT.Log.Debug("AppyDefaultBinding: " .. binding.property)
+				if WT.Log.Level >= 4 then
+					WT.Log.Debug(string.format("ApplyDefaultBinding, Property: %s, Default: %s", binding.property, binding.default))
+				end
 				binding.method(binding.object, binding.default)
 			end
 		end
 	end
 end
-
 
 -- Applies the bindings on this unit frame
 function WT.UnitFrame:ApplyBindings()
@@ -124,7 +121,6 @@ function WT.UnitFrame:ApplyBindings()
 	end
 	self.rebinding = false
 end
-
 
 function WT.UnitFrame.RefreshAllBindings(hEvent)
 	for idx, uf in ipairs(WT.UnitFrames) do

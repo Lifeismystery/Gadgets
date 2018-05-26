@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.10.3
       Project Date (UTC)  : 2013-10-06T09:26:25Z
       File Modified (UTC) : 2013-09-22T10:03:11Z (lifeismystery)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 Identifier = "Gadgets"
@@ -19,17 +19,18 @@ Author = "Wildtide, Lifeismystery"
 Website = "http://www.curse.com/addons/rift/gadgets"
 Email = "wildtide@wildtide.net","lifeismystery@yandex.ru"
 
-Version = "v0.10.3"
+Version = "v0.10.19"
 
-Environment = "3.1"
+Environment = "4.4"
 
-RunOnStartup = 
+RunOnStartup =
 {
   "wtInitMedia.lua",
   "LifeSharedMedia.lua",
   "wtFPSGadget.lua",
   "wtRangeFinderGadget.lua",
   "wtCPUGadget.lua",
+  "wtSystemInfoGadget.lua",
   "wtReloadGadget.lua",
   "wtUnitFrameGadget.lua",
   "wtChargeMeterGadget.lua",
@@ -37,36 +38,36 @@ RunOnStartup =
   "wtPlanarChargeGadget.lua",
   "wtSoulVitalityGadget.lua",
   "wtCastbarGadget.lua",
-  "wtCastbarPresets.lua",    
+  "wtCastbarPresets.lua",
   "wtLiveDPS.lua",
   "wtLiveHPS.lua",
   "wtEncounterDPS.lua",
   "wtXPPercentGadget.lua",
   "wtXPBarGadget.lua",
   "wtFactionPanelGadget.lua",
-  "wtHudArcGadget.lua", 
+  "wtHudArcGadget.lua",
   "wtDataTextBar.lua",
-  "wtStatTextBar.lua",  
+  "wtStatTextBar.lua",
   "wtCurrenciesTextBar.lua",
- --"wtBuffWatch.lua",
+  "wtFreeMemory.lua",
   "wtLifeComboPoints.lua",
   "wtColourPicker.lua",
   "wtBuffFilterConfig.lua",
   "wtBuffFilter.lua",
   "wtBuffTooltip.lua",
   "wtBuffBars_Renderer.lua",
-  "wtBuffBars.lua", 
+  "wtBuffBars.lua",
   "wtBuffIcons_Renderer.lua",
   "wtBuffIcons.lua",
-  "wtUnitFramePresets.lua", 
+  "wtUnitFramePresets.lua",
   "wtRangeTraker.lua"
 }
 
-SavedVariables = 
+SavedVariables =
 {
 }
 
-Embed = 
+Embed =
 {
 	wtLibCore = true,
 	wtLibMedia = true,
@@ -79,7 +80,7 @@ Embed =
 	["Lib/LibDraggable"] = true,
 }
 
-Dependencies = 
+Dependencies =
 {
 	wtLibCore = {"required", "before"},
 	wtLibUnitFrame = {"required", "before"},

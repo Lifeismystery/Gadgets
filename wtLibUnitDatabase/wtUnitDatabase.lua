@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.5.51
       Project Date (UTC)  : 2013-10-16T12:02:13Z
       File Modified (UTC) : 2013-09-29T19:33:56Z (lifeismystery)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
@@ -16,27 +16,27 @@ local TXT = Library.Translate
 
 --[[
 	WT.UnitDatabase
-	
+
 		Manages a collection of all currently available units, and maintains unit properties to automatically
-		keep them in sync with the client. 
+		keep them in sync with the client.
 
 	API
-	
+
 		Static Methods
-		
+
 			WT.UnitDatabase.GetUnit(unitId)
 				Returns a unit from the database, or nil if the unit was not found
-				
+
 			WT.UnitDatabase.CreateVirtualProperty(propertyName, dependencies, fn)
 				Create a virtual unit property. This will appear to be a normal property to the client.
 				propertyName: the unique name of the virtual property to create.
-				dependencies: an array of property IDs. A change in any of these properties will trigger the 
+				dependencies: an array of property IDs. A change in any of these properties will trigger the
 				              calculation of the virtual property.
 				fn:           a function that returns the value of the property. The function receives the
 				              Unit instance as it's only argument.
-				              
+
 		Events
-		
+
 			WT.Event.UnitAdded(unitId)
 				A unit was added to the database
 
@@ -74,9 +74,6 @@ lvl = WT.Player.level or 0
 WT.UnitDatabase = {}
 WT.UnitDatabase.Casting = {}
 
-
-
-
 -- Events --------------------------------------------------------------------
 WT.Event.Trigger.UnitAdded, WT.Event.UnitAdded = Utility.Event.Create(AddonId, "UnitAdded")
 WT.Event.Trigger.UnitRemoved, WT.Event.UnitRemoved = Utility.Event.Create(AddonId, "UnitRemoved")
@@ -94,20 +91,19 @@ local function IsBlackListed(buff)
 		return true
 	else
 		return false
-	end 
+	end
 end
-
 
 local numHotTrackers = 3
 local hotTrackers =
 {
-	role3 = 
+	role3 =
 	{
 		"Motif of Bravery",
 		"Motif of Tenacity",
 		"Motif of Regeneration",
 	},
-	role6 = 
+	role6 =
 	{
 		"Soothing Stream",
 		"Healing Spray",
@@ -120,11 +116,11 @@ local function TriggerBuffUpdates(unitId, changes)
 	WT.Unit.UpdateCleanseStatus(unit)
 	WT.Event.Trigger.BuffUpdates(unitId, changes)
 
-	-- Buffs have changed on the unit, update the HoT tracking data	
+	-- Buffs have changed on the unit, update the HoT tracking data
 	-- HoT tracking is restricted to friendly units to save processing
-	if unit.relation == "friendly" then
+	--[[if unit.relation == "friendly" then
 		local role = Inspect.TEMPORARY.Role()
-		if role then 
+		if role then
 			local htrack = hotTrackers["role" .. role]
 			if not htrack then
 				for idx = 1,numHotTrackers do
@@ -142,92 +138,83 @@ local function TriggerBuffUpdates(unitId, changes)
 				end
 			end
 		end
-	end
+	end]]
 
 end
 
-
-local function OnBuffAdd(hEvent, unitId, buffs)
-
+local function OnBuffAddWorker(unitId, buffs)
 	if not buffs then return end
 	if not WT.Units[unitId] then return end
 
 	local bdesc = Inspect.Buff.Detail(unitId, buffs)
 	--dump(Inspect.Buff.Detail(unitId, buffs))
 	local changes = { add = {} }
-	
+	local executeChanges = false
 	for buffId, buff in pairs(bdesc) do
 	--dump(buff.name, buff.icon)
 		buff.unitId = unitId
-	
-		-- We learn all of the buffs the player is capable of casting in their current role, and store them
-		if buff.caster == WT.Player.id and buff.type then
-			local roleId = Inspect.TEMPORARY.Role()
-			if roleId then
-				if not WT.PlayerBuffs[roleId] then
-					WT.PlayerBuffs[roleId] = {}
-				end
-				if not WT.PlayerBuffs[roleId][buff.type] then
-					WT.PlayerBuffs[roleId][buff.type] = buff
-					WT.Log.Info("Learned player buff for role " .. roleId .. ": " .. buff.name)
-				end
-			end		
-		end
-		-- End Buff Learning Logic
-	
 		if not IsBlackListed(buff) then 
 			if not WT.Units[unitId].Buffs[buffId] then
+				executeChanges = true
 				changes.add[buffId] = buff
 				WT.Units[unitId].Buffs[buffId] = buff
 			end
 		end
 	end
-
-	TriggerBuffUpdates(unitId, changes)
-
+	if executeChanges == true then
+		TriggerBuffUpdates(unitId, changes)
+	end
 end
-
-
-local function OnBuffRemove(hEvent, unitId, buffs)
-
+local function OnBuffAdd(hEvent, unitId, buffs)
+	local job = coroutine.create(OnBuffAddWorker)
+	coroutine.resume(job,unitId, buffs)
+end
+local function OnBuffRemoveWorker(unitId, buffs)
 	if not buffs then return end
 	if not WT.Units[unitId] then return end
-
 	local changes = { remove = {} }
-	
+	local executeChanges = false
 	for buffId in pairs(buffs) do
 		if WT.Units[unitId].Buffs[buffId] then
+			executeChanges = true
 			changes.remove[buffId] = WT.Units[unitId].Buffs[buffId]
 			WT.Units[unitId].Buffs[buffId] = nil
 		end
 	end
-
-	TriggerBuffUpdates(unitId, changes)
-
+	if executeChanges == true then
+		TriggerBuffUpdates(unitId, changes)
+	end
+end
+local function OnBuffRemove(hEvent, unitId, buffs)
+	local job = coroutine.create(OnBuffRemoveWorker)
+	coroutine.resume(job,unitId, buffs)
 end
 
 
-local function OnBuffChange(hEvent, unitId, buffs)
-
+local function OnBuffChangeWorker(unitId, buffs)
 	if not buffs then return end
 	if not WT.Units[unitId] then return end
 
 	local changes = { update = {} }
-
+	local executeChanges = false
 	local bdesc = Inspect.Buff.Detail(unitId, buffs)
 	
 	for buffId, buff in pairs(bdesc) do
 		if not IsBlackListed(buff) then 
+			executeChanges = true
 			changes.update[buffId] = buff
 			WT.Units[unitId].Buffs[buffId] = buff
 		end
 	end
-
-	TriggerBuffUpdates(unitId, changes)
-
+	if executeChanges == true then
+		TriggerBuffUpdates(unitId, changes)
+	end
 end
 
-
+local function OnBuffChange(hEvent, unitId, buffs)
+	local job = coroutine.create(OnBuffChangeWorker)
+	coroutine.resume(job,unitId, buffs)
+end
 local castColorUninterruptable = { r=0.9, g=0.7, b=0.3, a=1 }
 local castColorInterruptable = { r=0.42, g=0.69, b=0.81, a=1 }
 
@@ -243,8 +230,8 @@ local function UpdateCastbarDetails(unitId, cb)
 			unit.castColor = castColorInterruptable
 		end
 		-- Need to store some extra data to handle pushback properly
-		WT.Units[unitId].castUpdated = Inspect.Time.Frame()		
-		WT.Units[unitId].castRemaining = cb.remaining	
+		WT.Units[unitId].castUpdated = Inspect.Time.Frame()
+		WT.Units[unitId].castRemaining = cb.remaining
 		WT.Units[unitId].castDuration = cb.duration
 		unit.castName = cb.abilityName or ""
 	else
@@ -259,19 +246,22 @@ local function UpdateCastbarDetails(unitId, cb)
 	end
 end
 
-
+local lastCastChanges = Inspect.Time.Real() - 1
+local castThrottle = 0.025
 local function CalculateCastChanges()
-
+	WT.WatchdogSleep()
+	if (lastCastChanges and ((Inspect.Time.Real() - lastCastChanges) < castThrottle)) then
+		return
+	end
+	lastCastChanges = Inspect.Time.Real()
 	for unitId in pairs(castbarRefresh) do
 		WT.UnitDatabase.Casting[unitId] = Inspect.Unit.Castbar(unitId)
 		castbarRefresh[unitId] = nil 
 	end
-
-	local currTime = Inspect.Time.Frame()
 	for unitId, castbar in pairs(WT.UnitDatabase.Casting) do
 		local unit = WT.Units[unitId]			
 		if unit then
-			castbar.remaining = castbar.duration - (Inspect.Time.Frame() - castbar.begin)
+			castbar.remaining = castbar.duration - (lastCastChanges - castbar.begin)
 			UpdateCastbarDetails(unitId, castbar)
 			local percent = 0
 			pcall(
@@ -293,25 +283,11 @@ local function CalculateCastChanges()
 	end
 end
 
-
 local function OnUnitCastbar(hEvent, units)
 	for unitId, cbVisible in pairs(units) do
 		if WT.Units[unitId] then
 			if cbVisible then
 				castbarRefresh[unitId] = true
-				--local cb = Inspect.Unit.Castbar(unitId)
-				--dump(cb)
-				--cb.elapsed = 0
-				--cb.remaining = cb.duration
-				--cb.begin = Inspect.Time.Frame()
-				--[[
-				if cb then 
-					WT.Units[unitId]._castbar = cb
-					WT.Event.Trigger.CastbarShow(unitId, cb)
-					WT.UnitDatabase.Casting[unitId] = cb
-					UpdateCastbarDetails(unitId, cb)
-				end
-				--]]
 			else
 				castbarRefresh[unitId] = nil
 				WT.Units[unitId]._castbar = nil
@@ -330,51 +306,37 @@ local function OnUnitCastbar(hEvent, units)
 	end
 end
 
-
 local playerAvailableFired = false
 
 -- This is where the Unit instance is created if unitObject == nil
 local function PopulateUnit(unitId, unitObject, omitBuffScan)
-
 	local detail = Inspect.Unit.Detail(unitId)
 	if detail then
-		local unit = ((unitObject or WT.Units[unitId]) or WT.Unit:Create(unitId)) 
-			
+		local unit = ((unitObject or WT.Units[unitId]) or WT.Unit:Create(unitId))
+
 		for k,v in pairs(detail) do
 			unit[k] = v
-		end 
-		if not unit.healthMax then 
+		end
+		if not unit.healthMax then
 			unit.partial = true
 		else
 			unit.partial = false
 		end
-	--[[
-			if detail.focus < 100 then
-				unit["primalistFocus"] = detail.focus - 0
-				unit["primalistColor"] = { r = 0.66, g = 0.09, b = 0.09, a = 1.0 }
-			elseif detail.focus == 100  then
-				unit["primalistFocus"] = detail.focus - 100
-				unit["primalistColor"] = { r = 0.20, g = 0.15, b = 0.09, a = 1.0 }
-			elseif detail.focus > 100  then
-				unit["primalistFocus"] = detail.focus - 100
-				unit["primalistColor"] = { r = 0.26, g = 0.63, b = 0.73, a = 1.0 }
-			end
-		]]
 
-		if detail["manaMax"] then 
+		if detail["manaMax"] then
 			unit["resourceName"] = "mana"
 			unit["resourceText"] = TXT.Mana
 			unit["resourceColor"] = { r = 0.24, g = 0.49, b = 1.0, a = 1.0 }
-		elseif detail["energyMax"] then 
-			unit["resourceName"] = "energy" 
+		elseif detail["energyMax"] then
+			unit["resourceName"] = "energy"
 			unit["resourceText"] = TXT.Energy
 			unit["resourceColor"] = { r = 0.86, g = 0.43, b = 0.88, a = 1.0 }
-		elseif detail["power"] then 
+		elseif detail["power"] then
 			unit["resourceName"] = "power"
 			unit["resourceText"] = TXT.Power
 			unit["resourceColor"] = { r = 0.81, g = 0.58, b = 0.16, a = 1.0 }
-		else 
-			unit["resourceName"] = "" 
+		else
+			unit["resourceName"] = ""
 			unit["resourceText"] = ""
 			unit["resourceColor"] = { r = 0.31, g = 0.31, b = 0.31, a = 1.0 }
 		end
@@ -390,11 +352,11 @@ local function PopulateUnit(unitId, unitObject, omitBuffScan)
 			unit.callingText = TXT.Rogue
 		elseif detail.calling == "warrior" then
 			unit.callingColor = { r = 1.0, g = 0.15, b = 0.15, a = 1.0 }
-			unit.callingText = TXT.Warrior	
+			unit.callingText = TXT.Warrior
 		elseif detail.calling == "primalist" then
 			unit.callingColor = { r = 0.29, g = 0.83, b = 0.98, a = 1.0 }
-			unit.callingText = TXT.Primalist	
-		else	
+			unit.callingText = TXT.Primalist
+		else
 			unit.callingColor = { r = 0.2, g = 0.4, b = 0.6, a = 1.0 }
 			unit.callingText = ""
 
@@ -405,45 +367,37 @@ local function PopulateUnit(unitId, unitObject, omitBuffScan)
 		else
 			unit.nameShort = unit.name
 		end
-		
+
 		-- remap the coordinate fields into a single table property
 		unit.coord = { detail.coordX or 0, detail.coordY or 0, detail.coordZ or 0 }
 		WT.Units[unitId] = unit
-		
+
 		if not unit.Buffs then unit.Buffs = {} end
-					
+
 		-- Fire player available if required
-		if unitId == Inspect.Unit.Lookup("player") then 
-			WT.Player = unit		
+		if unitId == Inspect.Unit.Lookup("player") then
+			WT.Player = unit
 			lvl = WT.Player.level
 			if not playerAvailableFired then
 				WT.Event.Trigger.PlayerAvailable()
 				playerAvailableFired = true
-			end 
+			end
 		end
-		
-		if unitId == Inspect.Unit.Lookup("player.target") then
-			unit.playerTarget = true
-					
-		--[[local targets = Inspect.Unit.Detail(Inspect.Unit.List()).name)
-		for k,v in pairs(targets) do
-			unit[k] = v
-		end]]
-		--dump(Inspect.Unit.Detail(Inspect.Unit.List()).name)
-		end 
-		--dump(Inspect.Unit.Detail("player").vitality)
-		
+
+		if unitId == Inspect.Unit.Lookup("player.target") then unit.playerTarget = true end
+
 		-- Add all buffs currently on the unit
 		if not omitBuffScan then
 			OnBuffRemove(nil, unitId, unit.Buffs)
 			OnBuffAdd(nil, unitId, Inspect.Buff.List(unitId))
-		end		
+		end
 
 		local needsCleanse = false	
 		for buffId, buffDetail in pairs(unit.Buffs) do	
 		--dump(buffDetail)
 			if buffDetail.curse or buffDetail.disease or buffDetail.poison then
 				needsCleanse = true
+				break
 			end
 		end
 		unit.cleansable = needsCleanse
@@ -465,7 +419,7 @@ function WT.UnitDatabase.GetUnit(unitId)
 	
 end
 
-local function OnUnitAvailablePartial(hEvent, units)
+local function OnUnitAvailablePartialWorker(units)
 	for unitId, spec in pairs(units) do
 		if not WT.Units[unitId] then
 			local unit = PopulateUnit(unitId, nil, true)
@@ -477,8 +431,11 @@ local function OnUnitAvailablePartial(hEvent, units)
 		end
 	end		
 end
-
-local function OnUnitAvailable(hEvent, units)
+local function OnUnitAvailablePartial(hEvent, units)
+	local job = coroutine.create(OnUnitAvailablePartialWorker)
+	coroutine.resume(job, units)
+end
+local function OnUnitAvailableWorker(units)
 	for unitId, spec in pairs(units) do		
 		local unit = PopulateUnit(unitId)
 		if unit then
@@ -486,14 +443,20 @@ local function OnUnitAvailable(hEvent, units)
 		end
 	end
 end
-
-local function OnUnitUnavailable(hEvent, units)
+local function OnUnitAvailable(hEvent, units)
+	local job = coroutine.create(OnUnitAvailableWorker)
+	coroutine.resume(job, units)
+end
+local function OnUnitUnavailableWorker(units)
 	for unitId in pairs(units) do
 		WT.Units[unitId] = nil
 		WT.Event.Trigger.UnitRemoved(unitId)
 	end
 end
-
+local function OnUnitUnavailable(hEvent, units)
+	local job = coroutine.create(OnUnitUnavailableWorker)
+	coroutine.resume(job, units)
+end
 
 -- Sets the property against the relevant unit in the database
 local function SetProperty(unitId, property, value)
@@ -507,15 +470,25 @@ local function SetProperty(unitId, property, value)
 	end
 end
 
+local function OnUnitDetailAbsorbWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "absorb", value) 
+	end
+end
 local function OnUnitDetailAbsorb(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "absorb", value) end
+	local job = coroutine.create(OnUnitDetailAbsorbWorker)
+	coroutine.resume(job, unitsValue)
 end
-
+local function OnUnitDetailHealthWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do
+		SetProperty(unitId, "health", value) 
+	end
+end
 local function OnUnitDetailHealth(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "health", value) end
+	local job = coroutine.create(OnUnitDetailHealthWorker)
+	coroutine.resume(job, unitsValue)
 end
-
-local function OnUnitDetailHealthCap(hEvent, units)
+local function OnUnitDetailHealthCapWorker(units)
 	local unitsValue = Inspect.Unit.Detail(units)
 	for unitId,value in pairs(unitsValue) do
 		if WT.Units[unitId] then
@@ -523,188 +496,420 @@ local function OnUnitDetailHealthCap(hEvent, units)
 		end
 	end
 end
-
+local function OnUnitDetailHealthCap(hEvent, units)
+	local job = coroutine.create(OnUnitDetailHealthCapWorker)
+	coroutine.resume(job, units)
+end
+local function OnUnitDetailHealthMaxWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "healthMax", value)
+	end
+end
 local function OnUnitDetailHealthMax(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "healthMax", value) end
+	local job = coroutine.create(OnUnitDetailHealthMaxWorker)
+	coroutine.resume(job, unitsValue)
 end
-
+local function OnUnitDetailManaWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "mana", value)
+	end
+end
 local function OnUnitDetailMana(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "mana", value) end
+	local job = coroutine.create(OnUnitDetailManaWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailManaMaxWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "manaMax", value)
+	end
+end
 local function OnUnitDetailManaMax(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "manaMax", value) end
+	local job = coroutine.create(OnUnitDetailManaMaxWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailPowerWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "power", value)
+	end
+end
 local function OnUnitDetailPower(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "power", value) end
+	local job = coroutine.create(OnUnitDetailPowerWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailEnergyWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "energy", value)
+	end
+end
 local function OnUnitDetailEnergy(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "energy", value) end
+	local job = coroutine.create(OnUnitDetailEnergyWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailEnergyMaxWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "energyMax", value)
+	end
+end
 local function OnUnitDetailEnergyMax(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "energyMax", value) end
+	local job = coroutine.create(OnUnitDetailEnergyMaxWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailChargeWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "charge", value)
+	end
+end
 local function OnUnitDetailCharge(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "charge", value) end
+	local job = coroutine.create(OnUnitDetailChargeWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailChargeMaxWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "chargeMax", value)
+	end
+end
 local function OnUnitDetailChargeMax(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "chargeMax", value) end
+	local job = coroutine.create(OnUnitDetailChargeMaxWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailAfkWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "afk", value)
+	end
+end
 local function OnUnitDetailAfk(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "afk", value) end
+	local job = coroutine.create(OnUnitDetailAfkWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailAggroWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "aggro", value)
+	end
+end
 local function OnUnitDetailAggro(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "aggro", value) end
+	local job = coroutine.create(OnUnitDetailAggroWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailBlockedWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "blocked", value)
+	end
+end
 local function OnUnitDetailBlocked(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "blocked", value) end
+	local job = coroutine.create(OnUnitDetailBlockedWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailCombatWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "combat", value)
+	end
+end
 local function OnUnitDetailCombat(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "combat", value) end
+	local job = coroutine.create(OnUnitDetailCombatWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailComboWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "combo", value)
+	end
+end
 local function OnUnitDetailCombo(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "combo", value) end
+	local job = coroutine.create(OnUnitDetailComboWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailComboUnitWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "comboUnit", value)
+	end
+end
 local function OnUnitDetailComboUnit(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "comboUnit", value) end
+	local job = coroutine.create(OnUnitDetailComboUnitWorker)
+	coroutine.resume(job, unitsValue)
 end
-
+local function OnUnitDetailGuildWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "guild", value)
+	end
+end
 local function OnUnitDetailGuild(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "guild", value) end
+	local job = coroutine.create(OnUnitDetailGuildWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailLevelWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "level", value)
+	end
+end
 local function OnUnitDetailLevel(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "level", value) end
+	local job = coroutine.create(OnUnitDetailLevelWorker)
+	coroutine.resume(job, unitsValue)
 end
 
 local function OnUnitDetailLocationName(hEvent, unitsValue)
 	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "locationName", value) end
 end
 
+local function OnUnitDetailMarkWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "mark", value)
+	end
+end
 local function OnUnitDetailMark(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "mark", value) end
+	local job = coroutine.create(OnUnitDetailMarkWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailNameWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "name", value)
+	end
+end
 local function OnUnitDetailName(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "name", value) end
+	local job = coroutine.create(OnUnitDetailNameWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailOfflineWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "offline", value)
+	end
+end
 local function OnUnitDetailOffline(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "offline", value) end
+	local job = coroutine.create(OnUnitDetailOfflineWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailPlanarWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "planar", value)
+	end
+end
 local function OnUnitDetailPlanar(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "planar", value) end
+	local job = coroutine.create(OnUnitDetailPlanarWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailPlanarMaxWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "planarMax", value)
+	end
+end
 local function OnUnitDetailPlanarMax(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "planarMax", value) end
+	local job = coroutine.create(OnUnitDetailPlanarMaxWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailPublicSizeWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "publicSize", value)
+	end
+end
 local function OnUnitDetailPublicSize(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "publicSize", value) end
+	local job = coroutine.create(OnUnitDetailPublicSizeWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailPvpWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "pvp", value)
+	end
+end
 local function OnUnitDetailPvp(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "pvp", value) end
+	local job = coroutine.create(OnUnitDetailPvpWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailReadyWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "ready", value)
+	end
+end
 local function OnUnitDetailReady(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "ready", value) end
+	local job = coroutine.create(OnUnitDetailReadyWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailRoleWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "role", value)
+	end
+end
 local function OnUnitDetailRole(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "role", value) end
+	local job = coroutine.create(OnUnitDetailRoleWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailRaceNameWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "raceName", value)
+	end
+end
 local function OnUnitDetailRaceName(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "raceName", value) end
+	local job = coroutine.create(OnUnitDetailRaceNameWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailRadiusWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "radius", value)
+	end
+end
 local function OnUnitDetailRadius(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "radius", value) end
+	local job = coroutine.create(OnUnitDetailRadiusWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailTaggedWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "tagged", value)
+	end
+end
 local function OnUnitDetailTagged(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "tagged", value) end
+	local job = coroutine.create(OnUnitDetailTaggedWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailTitlePrefixWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "TitlePrefix", value)
+	end
+end
 local function OnUnitDetailTitlePrefix(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "titlePrefix", value) end
+	local job = coroutine.create(OnUnitDetailTitlePrefixWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailTitlePrefixIdWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "titlePrefixId", value)
+	end
+end
 local function OnUnitDetailTitlePrefixId(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "titlePrefixId", value) end
+	local job = coroutine.create(OnUnitDetailTitlePrefixIdWorker)
+	coroutine.resume(job, unitsValue)
 end
-
+local function OnUnitDetailTitlePrefixNameWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "titlePrefixName", value)
+	end
+end
 local function OnUnitDetailTitlePrefixName(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "titlePrefixName", value) end
+	local job = coroutine.create(OnUnitDetailTitlePrefixNameWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailTitleSuffixWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "titleSuffix", value)
+	end
+end
 local function OnUnitDetailTitleSuffix(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "titleSuffix", value) end
+	local job = coroutine.create(OnUnitDetailTitleSuffixWorker)
+	coroutine.resume(job, unitsValue)
 end
-
+local function OnUnitDetailTitleSuffixIdWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "titleSuffixId", value)
+	end
+end
 local function OnUnitDetailTitleSuffixId(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "titleSuffixId", value) end
+	local job = coroutine.create(OnUnitDetailTitleSuffixIdWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailTitleSuffixNameWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "titleSuffixName", value)
+	end
+end
 local function OnUnitDetailTitleSuffixName(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "titleSuffixName", value) end
+	local job = coroutine.create(OnUnitDetailTitleSuffixNameWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailVitalityWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "vitality", value)
+
+	end
+end
 local function OnUnitDetailVitality(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "vitality", value) end
+	local job = coroutine.create(OnUnitDetailVitalityWorker)
+	coroutine.resume(job, unitsValue)
 end
 
+local function OnUnitDetailWarfrontWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "warfront", value)
+	end
+end
 local function OnUnitDetailWarfront(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "warfront", value) end
+	local job = coroutine.create(OnUnitDetailWarfrontWorker)
+	coroutine.resume(job, unitsValue)
 end
-
+local function OnUnitDetailMentoringWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "mentoring", value)
+	end
+end
 local function OnUnitDetailMentoring(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "mentoring", value) end
+	local job = coroutine.create(OnUnitDetailMentoringWorker)
+	coroutine.resume(job, unitsValue)
 end
-
+local function OnUnitDetailZoneWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "zone", value)
+	end
+end
 local function OnUnitDetailZone(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "zone", value) end
+	local job = coroutine.create(OnUnitDetailZoneWorker)
+	coroutine.resume(job, unitsValue)
+end
+local function OnUnitDetailCoordWorker(xValues, yValues, zValues)
+	for unitId,value in pairs(xValues) do
+		SetProperty(unitId, "coord", {xValues[unitId], yValues[unitId], zValues[unitId]}) -- map[1],map[2],map[3]}) -- create an additional property to allow single property position tracking
+	end
 end
 
 local function OnUnitDetailCoord(hEvent, xValues, yValues, zValues)
-	--local maps = {}	
-	for unitId,value in pairs(xValues) do
-		SetProperty(unitId, "coord", {xValues[unitId], yValues[unitId], zValues[unitId]}) -- map[1],map[2],map[3]}) -- create an additional property to allow single property position tracking
---		SetProperty(unitId, "coordX", xValues[unitId])
---		SetProperty(unitId, "coordY", yValues[unitId])
---		SetProperty(unitId, "coordZ", zValues[unitId])
+	local job = coroutine.create(OnUnitDetailCoordWorker)
+	coroutine.resume(job, xValues, yValues, zValues)
+end
+
+local function OnUnitDetailRelationWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "relation", value)
 	end
 end
-
 local function OnUnitDetailRelation(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "relation", value) end
+	local job = coroutine.create(OnUnitDetailRelationWorker)
+	coroutine.resume(job, unitsValue)
 end
 
-local lastRangeCalc = nil
+local lastRangeCalc = Inspect.Time.Real() - 1
 local rangeThrottle = 0.1
 
 local function CalculateRanges()
-
-	if (lastRangeCalc and ((Inspect.Time.Frame() - lastRangeCalc) < rangeThrottle)) then
+	--dump(Inspect.System.Watchdog())
+	WT.WatchdogSleep()
+	if (lastRangeCalc and ((Inspect.Time.Real() - lastRangeCalc) < rangeThrottle)) then
 		return
 	end
 
-	lastRangeCalc = Inspect.Time.Frame()
-
+	lastRangeCalc = Inspect.Time.Real()
 	if not WT.Player or not WT.Player.coord then return end
 
 	local px = WT.Player.coord[1]
@@ -712,7 +917,6 @@ local function CalculateRanges()
 	local pz = WT.Player.coord[3]
 	
 	for unitId,details in pairs(WT.Units) do
-	
 	    -- Force a recalculation of the cleansable status
 	    WT.Unit.UpdateCleanseStatus(details)
 	
@@ -760,11 +964,14 @@ local function CalculateRanges()
 	end
 end
 
-
+local lastHoTTrackers = Inspect.Time.Real() - 1
+local hotThrottle = 0.05
 local function CalculateHoTTrackers()
-
-	local currTime = Inspect.Time.Frame()
-
+	WT.WatchdogSleep()
+	if (lastHoTTrackers and ((Inspect.Time.Real() - lastHoTTrackers) < castThrottle)) then
+		return
+	end
+	lastHoTTrackers = Inspect.Time.Real()
 	for unitId, unit in pairs(WT.Units) do
 		if unit.HoTs then
 			for idx, buff in ipairs(unit.HoTs) do
@@ -772,7 +979,7 @@ local function CalculateHoTTrackers()
 					unit["HoT" .. idx .. "Percent"] = nil
 				else
 					if buff.duration then
-						local elapsed = currTime - buff.begin
+						local elapsed = lastHoTTrackers - buff.begin
 						local remaining = math.floor(buff.duration - elapsed)
 						if remaining > 0 then
 							local percent = (remaining / buff.duration) * 100
@@ -789,9 +996,10 @@ local function CalculateHoTTrackers()
 end
 
 local function OnSystemUpdateBegin(hEvent)
-	CalculateCastChanges()
-	CalculateRanges()
-	CalculateHoTTrackers()
+	WT.runProcess(CalculateCastChanges)
+	WT.runProcess(CalculateRanges)
+	--[[local job_hotChanges = coroutine.create(CalculateHoTTrackers)
+	coroutine.resume(job_hotChanges)]]--
 end
 
 -- Setup Event Handlers
@@ -870,13 +1078,13 @@ local function OnPlayerTargetChange(hEvent, unitId)
 end
 
 local function OnCastbarChange(hEvent, unitsValue)
-		if WT.Units[unitId] then
-			if cbVisible then 
-				WT.Units[unitId].castName = true
-				else 
-				WT.Units[unitId].castName = false
-			end
+	if WT.Units[unitId] then
+		if cbVisible then 
+			WT.Units[unitId].castName = true
+			else 
+			WT.Units[unitId].castName = false
 		end
+	end
 end
 
 
@@ -926,13 +1134,18 @@ Command.Event.Attach(Event.Unit.Detail.Zone, OnUnitDetailZone, "OnUnitDetailZone
 Command.Event.Attach(Event.Unit.Detail.Coord, OnUnitDetailCoord, "OnUnitDetailCoord")
 --Command.Event.Attach(Event.Unit.Detail.Relation, OnUnitDetailRelation, "OnUnitDetailRelation")
 
-
+local function OnChatNotifyWorker(unitsValue)
+	for unitId,value in pairs(unitsValue) do 
+		SetProperty(unitId, "OnChatNotify", value)
+	end
+end
 local function OnChatNotify(hEvent, unitsValue)
-	for unitId,value in pairs(unitsValue) do SetProperty(unitId, "OnChatNotify", value) end
+	local job = coroutine.create(OnChatNotifyWorker)
+	coroutine.resume(job, unitsValue)
 end
 counter = nil
 
-Command.Event.Attach(Event.System.Update.Begin,	OnSystemUpdateBegin, "DB_OnSystemUpdateBegin")
+Command.Event.Attach(WT.Event.Tick,	OnSystemUpdateBegin, "DB_OnSystemUpdateBegin")
 Command.Event.Attach(Event.Chat.Notify,	OnChatNotify, "OnChatNotify")
 
 

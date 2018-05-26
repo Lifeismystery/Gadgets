@@ -2,18 +2,17 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.5.6
       Project Date (UTC)  : 2013-11-03T06:56:55Z
       File Modified (UTC) : 2013-06-11T07:10:52Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
 local AddonId = toc.identifier
 local TXT = Library.Translate
-
 
 -- This allows for fluent building of a dialog, consisting of a vertical stack of controls
 
@@ -22,13 +21,12 @@ local CDialog_mt = { __index = CDialog }
 
 function CDialog:add(id, label, control, labelFontSize, stretch, iconFile, labelFontOutline, labelFontColor, labelFontColorY)
 
-	local lbl = false		
+	local lbl = false
 	local frm = UI.CreateFrame("Frame", "DialogFormRow", self.container)
-	
-	if label then
 
+	if label then
 		lbl = UI.CreateFrame("Text", "DialogFieldLbl", frm)
-	
+
 		if iconFile then
 			local icon = UI.CreateFrame("Texture", "DialogIcon", frm)
 			icon:SetTexture(AddonId, iconFile)
@@ -37,7 +35,7 @@ function CDialog:add(id, label, control, labelFontSize, stretch, iconFile, label
 		else
 			lbl:SetPoint("TOPLEFT", frm, "TOPLEFT")
 		end
-	
+
 		if (not control) then
 			lbl:SetPoint("RIGHT", frm, "RIGHT")
 		else
@@ -50,7 +48,6 @@ function CDialog:add(id, label, control, labelFontSize, stretch, iconFile, label
 			lbl:SetFontSize(16)
 		end
 		lbl:SetText(label)
-		--lbl:SetFont(AddonId, "blank-Bold")
 		lbl:SetEffectGlow({ colorR = 0.23, colorG = 0.17, colorB = 0.027, strength = 3, })
 		lbl:SetFontColor(1,0.97,0.84,1)
 		if labelFontOutline then
@@ -64,7 +61,7 @@ function CDialog:add(id, label, control, labelFontSize, stretch, iconFile, label
 			lbl:SetEffectGlow({ strength = 3, })
 		end
 	end
-	
+
 	frm.control = control
 	frm.id = id
 
@@ -78,7 +75,6 @@ function CDialog:add(id, label, control, labelFontSize, stretch, iconFile, label
 		frm:SetPoint("TOPLEFT", self.fields[#self.fields], "BOTTOMLEFT", 0, 8)
 	end
 
-	
 	frm:SetPoint("RIGHT", self.container, "RIGHT")
 
 	if control then
@@ -97,7 +93,7 @@ function CDialog:add(id, label, control, labelFontSize, stretch, iconFile, label
 	end
 
 	table.insert(self.fields, frm)
-	
+
 	return frm
 end
 
@@ -130,7 +126,7 @@ end
 
 function CDialog:FieldNote(note)
 	-- Double span notes... (note - setting stretch to true with no control will make the label span the full width)
-	self:add(nil, note, nil, 14, true, "img/wtInfo12.png")	
+	self:add(nil, note, nil, 14, true, "img/wtInfo12.png")
 	return self
 end
 
@@ -172,25 +168,19 @@ function CDialog:Select(id, label, default, listItems, sort, onchange)
 end
 
 function CDialog:Slider(id, label, default)
-	
 	local control = WT.Control.Slider.Create(self.container, id, label, default, onchange)
-	--control:SetText(default)
 	local frm = self:add(id, label, control)
 	frm.getValue = control.GetPosition
 	frm.setValue = control.SetPosition
 	return self
-	
 end
 
 function CDialog:SliderRange(id, label, minRange, maxRange, default)
-	
 	local control = WT.Control.SliderRange.Create(self.container, id, label, minRange, maxRange, default, onchange)
-	--control:SetText(default)
 	local frm = self:add(id, label, control)
 	frm.getValue = control.GetPosition
 	frm.setValue = control.SetPosition
 	return self
-	
 end
 
 function CDialog:MacroSet(id, label)
@@ -280,7 +270,6 @@ function CDialog:GetValues()
 	return vals
 end
 
-
 function CDialog:SetValues(tbl)
 	for idx,field in ipairs(self.fields) do
 		if field.id then
@@ -291,7 +280,6 @@ function CDialog:SetValues(tbl)
 		end
 	end
 end
-
 
 function WT.Dialog(container, labelWidth)
 	local obj = {}

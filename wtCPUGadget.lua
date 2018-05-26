@@ -2,18 +2,17 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.9.4-beta
       Project Date (UTC)  : 2015-07-13T16:47:34Z
       File Modified (UTC) : 2013-09-14T08:23:02Z (Adelea)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
 local AddonId = toc.identifier
 local TXT = Library.Translate
-
 
 -- wtCPUGadget creates a really simple "CPU" gadget for displaying Frames Per Second
 
@@ -30,15 +29,19 @@ local function Create(configuration)
 	local cpuHeading = UI.CreateFrame("Text", WT.UniqueName("wtCPU"), wrapper)
 	cpuHeading:SetText("ADDON CPU USAGE")
 	cpuHeading:SetFontSize(10)
-
+	cpuHeading:SetEffectGlow({ strength = 3 })
+	cpuHeading:SetFontColor(1.0, 1.0, 1.0, 1.0)
 	local cpuFrame = UI.CreateFrame("Text", WT.UniqueName("wtCPU"), wrapper)
 	cpuFrame:SetText("")
 	cpuFrame:SetFontSize(24)
+	cpuFrame:SetEffectGlow({ strength = 3 })
 	cpuFrame.currText = ""
-
+    cpuFrame:SetFontColor(1.0, 1.0, 1.0, 1.0)
 	local txtDetail = UI.CreateFrame("Text", WT.UniqueName("wtCPU"), wrapper)
 	txtDetail:SetText("")
 	txtDetail:SetFontSize(10)
+	txtDetail:SetFontColor(1.0, 1.0, 1.0, 1.0)
+	txtDetail:SetEffectGlow({ strength = 3 })
 	cpuFrame.detail = txtDetail
 
 	cpuHeading:SetPoint("TOPCENTER", wrapper, "TOPCENTER", 0, 5)
@@ -47,16 +50,14 @@ local function Create(configuration)
 
 	table.insert(cpuGadgets, cpuFrame)
 	return wrapper, { resizable={150, 64, 150, 70} }
-	
 end
-
 
 local dialog = false
 
-local function ConfigDialog(container)	
+local function ConfigDialog(container)
 	dialog = WT.Dialog(container)
 		:Label("The CPU monitor displays the percentage of Rift's processing time used by all addons.")
-		:Label("A future enhancement to this control is to allow the selection of which addons to monitor.")	
+		:Label("A future enhancement to this control is to allow the selection of which addons to monitor.")
 end
 
 local function GetConfiguration()
@@ -67,7 +68,6 @@ local function SetConfiguration(config)
 	dialog:SetValues(config)
 end
 
-
 WT.Gadget.RegisterFactory("CPU",
 	{
 		name=TXT.gadgetCPU_name,
@@ -75,11 +75,11 @@ WT.Gadget.RegisterFactory("CPU",
 		author="Wildtide",
 		version="1.0.0",
 		iconTexAddon=AddonId,
-		iconTexFile="img/wtCPU.png",
+		iconTexFile="img/menuIcons/wtCPU.png",
 		["Create"] = Create,
 		["ConfigDialog"] = ConfigDialog,
-		["GetConfiguration"] = GetConfiguration, 
-		["SetConfiguration"] = SetConfiguration, 
+		["GetConfiguration"] = GetConfiguration,
+		["SetConfiguration"] = SetConfiguration,
 	})
 
 local function GetCPU()
@@ -95,7 +95,6 @@ local function GetCPU()
 	end
 	return total, ctxrender
 end
-
 
 local delta = 0
 local function OnTick(hEvent, frameDeltaTime, frameIndex)

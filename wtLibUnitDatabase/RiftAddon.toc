@@ -11,24 +11,24 @@ Version = "v0.9.4-beta"
 
 Environment = "1.10"
 
-RunOnStartup = 
+RunOnStartup =
 {
   "wtUnit.lua",
   "wtUnitDatabase.lua",
 }
 
-SavedVariables = 
+SavedVariables =
 {
 }
 
-Embed = 
+Embed =
 {
 }
 
-Dependencies = 
+Dependencies =
 {
 	LibUnitChange = {"required", "before"},
-	wtLibCore = {"required", "before"},	
+	wtLibCore = {"required", "before"},
 }
 -- X-Curse-Packaged-Version: v0.9.4-beta
 -- X-Curse-Project-Name: Gadgets

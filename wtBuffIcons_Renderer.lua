@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.1.3
       Project Date (UTC)  : 2012-08-07T01:23:40Z
       File Modified (UTC) : 2012-08-07T01:23:40Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
@@ -17,11 +17,11 @@ local TXT = Library.Translate
 local buffIcons = {}
 local started = false
 local needsRefresh = {}
+local targetid = {}
 
 local exampleBuff = "Data/\\UI\\ability_icons\\discombobulate2a.dds"
 
 -- BEGIN BUFFSET INTERFACE IMPLEMENTATION --
-
 local buffSort = 99999999
 
 local BuffSet_CanAccept = data.CheckBuffFilter
@@ -49,7 +49,6 @@ local function BuffSet_Add(gadget, buff)
 		buff.displayPriority = 1
 	end
 	if not buff.sequence then
-		-- buff.sequence = string.format("%08i", buffSort) .. buff.id:sub(10,17)
 		buff.sequence = buff.id:sub(10,17)
 	end
 	gadget.buffs[buff.id] = buff
@@ -57,6 +56,7 @@ end
 
 local function BuffSet_Remove(gadget, buff)
 	gadget.buffs[buff.id] = nil
+	needsRefresh[gadget.id] = true
 end
 
 local function BuffSet_Update(gadget, buff)
@@ -67,7 +67,6 @@ local function BuffSet_Done(gadget)
 	needsRefresh[gadget.id] = true
 	buffSort = buffSort - 1
 end
-
 -- END BUFFSET INTERFACE IMPLEMENTATION --
 
 -- Calculate the remaining time on a buff, and populate additional values in the detail structure
@@ -78,33 +77,25 @@ local function CalculateRemaining(buff)
 	local currTime = Inspect.Time.Frame()
 	if buff.duration then
 		local elapsed = currTime - buff.begin
-		remaining = buff.duration - elapsed
+		remaining = math.floor(buff.duration - elapsed)
 		if remaining <= 0 then
-			txt = "" 
 			remaining = 0
 			remainingPercent = 0
-		elseif remaining < 60 then
-			txt = math.floor(remaining) .. "s"
+		else 
 			remainingPercent = remaining / buff.duration
-		elseif remaining < 3600 then
-			txt = math.floor(remaining / 60) .. "m"
-			remainingPercent = remaining / buff.duration
-		elseif remaining > 3600 and remaining < 7200  then
-			txt = "1h"
-			remainingPercent = remaining / buff.duration
-		elseif remaining > 7200 and remaining < 10800  then
-			txt = "2h"
-			remainingPercent = remaining / buff.duration	
-		elseif remaining > 10800 and remaining < 14400  then
-			txt = "3h"
-			remainingPercent = remaining / buff.duration
-		elseif remaining > 14400 and remaining < 18000  then
-			txt = "4h"
-			remainingPercent = remaining / buff.duration	
-		elseif remaining > 18000 and remaining < 21600  then
-			txt = "5h"
-			remainingPercent = remaining / buff.duration			
 		end
+		if remaining < 60 then
+			txt = tostring(math.floor(remaining) .. "s")
+		elseif remaining >=60 and remaining < 3600 then
+			txt = tostring(math.floor(remaining / 60) .. "m")
+		elseif remaining >= 3600 and remaining < 86400 then
+			txt = tostring(math.floor(remaining / 3600) .. "h")
+		elseif remaining >= 86400 then
+			txt = tostring(math.floor(remaining / 86400) .. "d")
+		end	
+	end
+	if remaining == 999999 and buff.sequence then
+		remaining = 999999+tonumber(buff.sequence,16)
 	end
 	buff.timerText = txt
 	buff.remaining = remaining
@@ -128,28 +119,32 @@ local function UpdateIcon(gadget, icon, buff)
 	icon.buff = buff
 	icon.icon:SetTexture("Rift", buff.icon)
 
-	local txtStack = ""	
+	local txtStack = ""
 	if (buff.stack and buff.stack > 1) then
  		txtStack = tostring(buff.stack) or ""
 	end
-	if icon.textStack:GetText() ~= txtStack then 
+	if icon.textStack:GetText() ~= txtStack then
 		icon.textStack:SetText(txtStack)
 	end
-	
+
 	icon.textTime:SetText(buff.timerText or "")
 	if buff.debuff then
-		icon:SetBackgroundColor(unpack(gadget.config.debuffBackground))	
-		icon.textTime:SetFontColor(unpack(gadget.config.debuffFontColour))
-		icon.border:SetBackgroundColor(unpack(gadget.config.debuffBorderColour))				
+		icon:SetBackgroundColor(unpack(gadget.config.debuffBackground))
+		if buff.curse or buff.disease or buff.poison then
+			icon.textTime:SetFontColor(0.65, 0,0.65,1)
+		else
+			icon.textTime:SetFontColor(unpack(gadget.config.debuffFontColour))
+		end
+		icon.border:SetBackgroundColor(unpack(gadget.config.debuffBorderColour))	
 	else
 		icon:SetBackgroundColor(unpack(gadget.config.buffBackground))	
 		icon.textTime:SetFontColor(unpack(gadget.config.buffFontColour))
 		icon.border:SetBackgroundColor(unpack(gadget.config.buffBorderColour))
 	end
-	
+
 	icon.textTime:SetVisible(WT.Utility.ToBoolean(gadget.config.showTimer))
 	icon.textStack:SetVisible(WT.Utility.ToBoolean(gadget.config.showStack))
-end				
+end
 data.UpdateIcon = UpdateIcon
 
 -- Clear (hide) a icon
@@ -165,7 +160,7 @@ end
 local function Refresh(gadget)
 	-- we can now rely on gadget.BuffData as populated by the Gadgets Framework to fill the panel
 	-- start by sorting into ascending order of time remaining...
-	
+
 	local currTime = Inspect.Time.Frame()
 	local configuration = gadget.config
 	local splitDebuffs = configuration.splitDebuffs
@@ -173,21 +168,22 @@ local function Refresh(gadget)
 	-- Make sure there are at least 2 rows before we try to split
 	if configuration.rows == 1 then splitDebuffs = false end
 
-	local seconds = 0 
+	local seconds = 0
 
 	-- Do we have a time limit for buff display?
 	if gadget.config.limitRemaining then
 		seconds = tonumber(gadget.config.limitRemainingSeconds) or 0
-		if seconds > 0 then 
+		if seconds > 0 then
 			seconds = seconds + 0.99
-		end 
-	end  
+		end
+	end
 
 	-- One-time iteration to calculate the remaining time of each buff, and add all buffs to be shown to the sort list
 	local sortList = {}
 	for buffId, buff in pairs(gadget.buffs) do
 		CalculateRemaining(buff)
-		if seconds == 0 or (buff.remaining <= seconds) then
+		--dump(buff)
+		if seconds == 0 or (buff.remaining <= seconds) or (not buff.duration and gadget.config.showPermanentBuffs) then
 			if gadget.config.sortByTime then
 				table.insert(sortList, buff.remaining)
 			else
@@ -197,12 +193,12 @@ local function Refresh(gadget)
 			local timeBuffBecomesVisible = currTime + (buff.remaining - seconds)
 			if (not gadget.forceRefreshTime) or (gadget.forceRefreshTime > timeBuffBecomesVisible) then
 				gadget.forceRefreshTime = timeBuffBecomesVisible
-			end  
+			end
 		end
 
 	end
 	table.sort(sortList)
-	
+
 	-- sortList contains an entry for every buff's remaining time, in ascending order of remaining time
 	-- we can now use this list to assign a buff to each icon slot in the gadget by matching the remaining time
 	local masterList = {{},{},{},{},{},{}}
@@ -225,35 +221,34 @@ local function Refresh(gadget)
 			end
 		end
 	end
-	
-	
+
+
 	sortList = {}
 	for subListIndex = 1, 6 do
 		subList = masterList[subListIndex]
 		if subList then
 			for idk = 1, #subList do
 				table.insert(sortList, subList[idk])
-				
+
 				if #sortList == configuration.maxBars then break end
 			end
-			
+
 			if #sortList == configuration.maxBars then break end
 		end
 	end
-	
+
 	-- table has a list of buffs in ascending order, reverse if we're sorting in descending order
-	-- note this is done at this point and not sooner, so that short duration buffs are still allocated bar 
+	-- note this is done at this point and not sooner, so that short duration buffs are still allocated bar
 	-- slots before long duration buffs, even if sorting descending
 	if gadget.config.sortDescending then
 		sortList = ReverseTable(sortList)
-	end	
-	
+	end
+
 	-- Split the sortlist into buffs and debuffs if user has chosen to split
 	-- Otherwise, leave everything sat in the buffs list
-	
 	local lstBuffs = {}
 	local lstDebuffs = {}
-	
+
 	for idx,buff in ipairs(sortList) do
 		if splitDebuffs and buff.debuff then
 			table.insert(lstDebuffs, buff)
@@ -261,10 +256,10 @@ local function Refresh(gadget)
 			table.insert(lstBuffs, buff)
 		end
 	end
-	
+
 	local buffRows = math.ceil(#lstBuffs / configuration.cols)
 	local debuffRows = math.ceil(#lstDebuffs / configuration.cols)
-	
+
 	-- Throw away whatever we have the most of until we no longer have too many rows
 	while (buffRows + debuffRows) > configuration.rows do
 		if #lstBuffs > #lstDebuffs then
@@ -275,17 +270,17 @@ local function Refresh(gadget)
 		buffRows = math.ceil(#lstBuffs / configuration.cols)
 		debuffRows = math.ceil(#lstDebuffs / configuration.cols)
 	end
-	
+
 	-- table has a list of buffs in ascending order, reverse so that longer ones stay still
 	if gadget.config.sortByTime then
 		lstBuffs = ReverseTable(lstBuffs)
 		lstDebuffs = ReverseTable(lstDebuffs)
 	end
-	
+
 	-- now we need to assign each buff in the list to the correct icon slot. If growth direction is upwards,
 	-- and the gadget is not full, we have to leave the right number of empty slots
 	local totalSlots = configuration.rows * configuration.cols
-	local emptySlots = totalSlots - #lstBuffs - #lstDebuffs 
+	local emptySlots = totalSlots - #lstBuffs - #lstDebuffs
 	local firstIcon = 1
 
 	-- Clear out all of the slots
@@ -293,36 +288,32 @@ local function Refresh(gadget)
 		ClearIcon(gadget.icons[idx])
 	end
 
-	
+
 	-- Fill the populated slots
 	for idx, buff in ipairs(lstBuffs) do
 		UpdateIcon(gadget, gadget.icons[idx], lstBuffs[idx])
 	end
-	
-	local offset = (buffRows * configuration.cols) 
+
+	local offset = (buffRows * configuration.cols)
 
 	for idx, buff in ipairs(lstDebuffs) do
 		UpdateIcon(gadget, gadget.icons[idx + offset], lstDebuffs[idx])
 	end
-
 end
-
 
 local function OnResize(gadget, width, height)
-
 	local config = gadget.config
-	
 end
 
-
 local function UpdateTimers(gadget)
-
-	local currTime = Inspect.Time.Frame()
+	local currTime = Inspect.Time.Real()
 	local configuration = gadget.config
-
-	local pulse = (currTime % 2.0) * math.pi
-	local pulseAlpha = (math.sin(pulse) + 1.0) / 2.0
-	
+	local pulse = nil
+	local pulseAlpha = nil
+	if (gadget.config.enableFlashing) then
+		pulse = (currTime % 2.0) * math.pi
+		pulseAlpha = (math.sin(pulse) + 1.0) / 2.0
+	end
 	for idx, icon in pairs(gadget.icons) do
 		local buffId = icon.buffId
 		if buffId and gadget.buffs[buffId] then
@@ -332,72 +323,47 @@ local function UpdateTimers(gadget)
 			local txt = ""
 			if buff.duration then
 				local elapsed = currTime - buff.begin
-				remaining = math.floor(buff.duration - elapsed)
-				local remainingReal = buff.duration - elapsed
-				if remainingReal <= 0 then
-					txt = "" 
+				remaining = buff.duration - elapsed
+				if remaining <= 0 then
 					remaining = 0
 					remainingPercent = 0
-				elseif remaining < 60 then
-					txt = remaining .. "s"
-					remainingPercent = remainingReal / buff.duration
-				elseif remaining < 3600 then
-					txt = math.floor(remaining / 60) .. "m"
-					remainingPercent = remainingReal / buff.duration
-				elseif remaining > 3600 and remaining < 7200  then
-					txt = "1h"
-					remainingPercent = remainingReal / buff.duration
-				elseif remaining > 7200 and remaining < 10800  then
-					txt = "2h"
-					remainingPercent = remainingReal / buff.duration	
-				elseif remaining > 10800 and remaining < 14400  then
-					txt = "3h"
-					remainingPercent = remainingReal / buff.duration
-				elseif remaining > 14400 and remaining < 18000  then
-					txt = "4h"
-					remainingPercent = remainingReal / buff.duration	
-				elseif remaining > 18000 and remaining < 21600  then
-					txt = "5h"
-					remainingPercent = remainingReal / buff.duration					
+				else 
+					remainingPercent = remaining / buff.duration
 				end
-				
-				if (gadget.config.enableFlashing) and (remainingReal > 0) and (remainingReal <= 5.0) then
+				if remaining < 60 then
+					txt = tostring(math.floor(remaining) .. "s")
+				elseif remaining >=60 and remaining < 3600 then
+					txt = tostring(math.floor(remaining / 60) .. "m")
+				elseif remaining >= 3600 and remaining < 86400 then
+					txt = tostring(math.floor(remaining / 3600) .. "h")
+				elseif remaining >= 86400 then
+					txt = tostring(math.floor(remaining / 86400) .. "d")
+				end				
+				if (gadget.config.enableFlashing) and (remaining > 0) and (remaining <= 5.0) then
 					icon.icon:SetAlpha(pulseAlpha)
 				else
 					icon.icon:SetAlpha(1.0)
 				end
 				
 			end
-			if icon.textTime:GetText() ~= txt then 
-				buff.timerText = txt
-				icon.textTime:SetText(txt)
+			buff.timerText = txt
+			icon.textTime:SetText(txt)
+			local stack = ""
+			if buff.stack and buff.stack > 1 then
+				stack = tostring(buff.stack)
 			end
-			
-			local stack = buff.stack or 0
-			if stack > 1 then
-				stack = tostring(stack)
-			else
-				stack = ""
-			end
-			if icon.textStack:GetText() ~= stack then
-				icon.textStack:SetText(stack)
-			end
-			
+			icon.textStack:SetText(stack)
 			buff.remaining = remaining
 			buff.remainingPercent = remainingPercent
-			--icon.fill:SetPoint("RIGHT", icon.fillMeasure, buff.remainingPercent or 1.0, nil)
-		end		
+		end
 	end
-
 end
 
-
 local function LayoutIcon(icon, config)
-
 	icon:SetWidth(config.iconSize + (config.borderWidth * 2) + config.paddingLeft + config.paddingRight)
 	icon:SetHeight(config.iconSize + (config.borderWidth * 2) + config.paddingTop + config.paddingBottom)
 	icon:SetBackgroundColor(unpack(config.buffBackground))
-		
+
 	icon.border:SetLayer(5)
 	icon.border:SetPoint("TOPLEFT", icon, "TOPLEFT", config.paddingLeft, config.paddingTop)
 	icon.border:SetWidth(config.iconSize + (config.borderWidth * 2))
@@ -408,10 +374,10 @@ local function LayoutIcon(icon, config)
 	icon.icon:SetHeight(config.iconSize)
 	icon.icon:SetLayer(10)
 	icon.icon:SetTexture("Rift", exampleBuff)
-	
+
 	config.timerAnchor = config.timerAnchor or "TOPCENTER"
 	config.stackAnchor = config.stackAnchor or "TOPCENTER"
-	
+
 	icon.textTime:SetPoint(config.timerAnchor, icon, config.timerAnchor, config.timerX or 0, config.timerY or 0)
 	icon.textTime:SetFontSize(config.timerFontSize or 10)
 	icon.textTime:SetLayer(20)
@@ -424,26 +390,23 @@ local function LayoutIcon(icon, config)
 		icon.ghost:SetBackgroundColor(0,0,0,0.4)
 		icon.ghost:SetAllPoints(icon)
 	end
-
 end
 
-
 local function SetupIconMouseHandlers(icon, gadget)
-
 	local config = gadget.config
 
-	icon.Event.MouseIn = 
+	icon.Event.MouseIn =
 		function()
 			if config.tooltips then
 				data.ShowBuffTooltip(gadget.UnitSpec, icon.buffId)
 			end
 		end
 
-	icon.Event.MouseOut = 
+	icon.Event.MouseOut =
 		function()
 			data.HideBuffTooltip(icon.buffId)
 		end
-	
+
 	icon.Event.RightDown =
 		function()
 			-- only try if it's the player we're looking at
@@ -488,27 +451,23 @@ local function ConstructIcon(gadget, isPreview)
 
 	return icon
 end
-
-
 -- Make the construction functions available to other chunks
 data.ConstructIcon = ConstructIcon
 data.LayoutIcon = LayoutIcon
 
-
 function WT.Gadget.ConfigureBuffIcons(configuration)
-
 	-- StartUp the gadget the first time it's needed
 	if not started then data.wtBuffIcons_StartUp() end
 
 	local gadgetId = configuration.id
 	local gadget = buffIcons[gadgetId]
-	
+
 	if not gadget then
 		gadget = WT.UnitFrame:Create(configuration.unitSpec)
 		gadget.buffs = {}
 		gadget.buffsPending = {}
 		gadget.id = configuration.id
-		
+
 		buffIcons[gadgetId] = gadget
 
 		gadget.icons = {}
@@ -523,7 +482,7 @@ function WT.Gadget.ConfigureBuffIcons(configuration)
 		gadget.Update = BuffSet_Update
 		gadget.Done = BuffSet_Done
 		gadget:RegisterBuffSet(gadget)
-		
+
 		gadget.OnResize = OnResize
 	else
 		-- Clear out any existing bindings
@@ -531,40 +490,39 @@ function WT.Gadget.ConfigureBuffIcons(configuration)
 		-- Set the unit tracker to the correct unit
 		gadget:TrackUnit(configuration.unitSpec)
 	end
-		
+
 	gadget.config = configuration
-		
-	local slotHeight = configuration.iconSize + (configuration.borderWidth * 2) + configuration.paddingTop + configuration.paddingBottom 
+
+	local slotHeight = configuration.iconSize + (configuration.borderWidth * 2) + configuration.paddingTop + configuration.paddingBottom
 	local slotWidth = configuration.iconSize + (configuration.borderWidth * 2) + configuration.paddingLeft + configuration.paddingRight
 	local totalSlotHeight = configuration.rows * slotHeight
 	local totalSlotWidth = configuration.cols * slotWidth
 	local totalMarginHeight = (configuration.rows - 1) * configuration.marginVertical
 	local totalMarginWidth = (configuration.cols - 1) * configuration.marginHorizontal
-	 
-	local gadgetHeight = totalSlotHeight + totalMarginHeight 
-	local gadgetWidth = totalSlotWidth + totalMarginWidth 
+
+	local gadgetHeight = totalSlotHeight + totalMarginHeight
+	local gadgetWidth = totalSlotWidth + totalMarginWidth
 
 	local nextElementOffset = 0
-	
+
 	-- Ensure there are enough icon elements available to display the max number of icons
-	while #gadget.icons < (configuration.rows * configuration.cols) do	
-		table.insert(gadget.icons, ConstructIcon(gadget))		
+	while #gadget.icons < (configuration.rows * configuration.cols) do
+		table.insert(gadget.icons, ConstructIcon(gadget))
 	end
-	
+
 	-- Hide all icons and set their position (including any extra icons that are no longer needed)
-	
 	local col = 0
 	local row = 0
 	local idx = 0
-	 
+
 	for idx, icon in ipairs(gadget.icons) do
-	
+
 		icon:SetVisible(false)
 		LayoutIcon(icon, gadget.config)
-		
+
 		local tcol = col
-		local trow = row 
-		
+		local trow = row
+
 		if gadget.config.fillFrom == "TOPRIGHT" then
 			tcol = gadget.config.cols - col - 1
 		elseif gadget.config.fillFrom == "BOTTOMLEFT" then
@@ -573,26 +531,26 @@ function WT.Gadget.ConfigureBuffIcons(configuration)
 			tcol = gadget.config.cols - col - 1
 			trow = gadget.config.rows - row - 1
 		end
-		
+
 		icon:SetPoint("TOPLEFT", gadget, "TOPLEFT", (tcol * (slotWidth + configuration.marginHorizontal)), (trow * (slotHeight + configuration.marginVertical)))
 		icon.textStack:SetText("")
 		icon.textTime:SetText("")
-		
+
 		if idx <= (configuration.rows * configuration.cols)  then
 			icon.ghost:SetVisible(true)
 		else
 			icon.ghost:SetVisible(false)
 		end
-		
+
 		col = col + 1
 		if col >= configuration.cols then
 			col = 0
 			row = row + 1
 		end
 		idx = idx + 1
-		
+
 	end
-	
+
 	gadget:SetWidth(gadgetWidth)
 	gadget:SetHeight(gadgetHeight)
 
@@ -604,7 +562,7 @@ function WT.Gadget.ConfigureBuffIcons(configuration)
 			gadget.wildcards[pattern] = true
 		end
 	end
-	
+	targetid[gadget.id] = 0
 	needsRefresh[gadget.id] = true
 	gadget:ReapplyBuffDelta()
 	gadget:ApplyBindings()
@@ -615,22 +573,55 @@ function WT.Gadget.ConfigureBuffIcons(configuration)
 	
 end
 
-
-local function OnUpdateBegin(hEvent)
-	
-	local currTime = Inspect.Time.Frame()
-	
+local lastbIconRefreshTime = Inspect.Time.Real() - 1
+local bIconRefreshTimeThrottle = 0.1
+local function BuffIconsRendererWorker()
+	WT.WatchdogSleep()
+	if (lastbIconRefreshTime and ((Inspect.Time.Real() - lastbIconRefreshTime) < bIconRefreshTimeThrottle)) then
+		return
+	end
+	lastbIconRefreshTime = Inspect.Time.Real()
+	local jobs = {}
 	for gadgetId, gadget in pairs(buffIcons) do
-		if needsRefresh[gadgetId] or (gadget.forceRefreshTime and (gadget.forceRefreshTime <= currTime)) then
-			Refresh(gadget)
+		if targetid[gadget.id] ~= 0 then
+			if targetid[gadget.id] ~= gadget.UnitId then
+				local configuration = gadget.config
+				local totalSlots = configuration.rows * configuration.cols
+				for idx = 1, totalSlots do
+					ClearIcon(gadget.icons[idx])
+				end	
+				if gadget.UnitId ~= nil then
+					targetid[gadget.id] = gadget.UnitId
+				else 
+					targetid[gadget.id] = 0
+				end
+			end
+		else 
+			if gadget.UnitId ~= nil then
+				local configuration = gadget.config
+				local totalSlots = configuration.rows * configuration.cols
+				for idx = 1, totalSlots do
+					ClearIcon(gadget.icons[idx])
+				end
+				targetid[gadget.id] = gadget.UnitId
+			else
+				targetid[gadget.id] = 0
+			end
+		end
+		if needsRefresh[gadgetId] or (gadget.forceRefreshTime and (gadget.forceRefreshTime <= lastbIconRefreshTime)) then
+			jobs[gadgetId] = coroutine.create(Refresh)
+			coroutine.resume(jobs[gadgetId],gadget)
+			needsRefresh[gadgetId] = false
 		else
-			UpdateTimers(gadget)
+			jobs[gadgetId] = coroutine.create(UpdateTimers)
+			coroutine.resume(jobs[gadgetId],gadget)
 		end
 	end
-	needsRefresh = {}
-	
 end
 
+local function OnUpdateBegin(hEvent)
+	WT.runProcess(BuffIconsRendererWorker)
+end
 
 local function OnUnlocked()
 	for gadgetId, gadget in pairs(buffIcons) do
@@ -648,7 +639,7 @@ end
 -- registration until it's needed
 function data.wtBuffIcons_StartUp()
 	-- Register for event handlers
-	Command.Event.Attach(Event.System.Update.Begin, OnUpdateBegin, "UpdateBegin")
+	Command.Event.Attach(WT.Event.Tick, OnUpdateBegin, "BuffIcons_UpdateBegin")
 	table.insert(WT.Event.GadgetsUnlocked, { OnUnlocked, AddonId, "BuffIcons_OnUnlocked" })
 	table.insert(WT.Event.GadgetsLocked, { OnLocked, AddonId, "BuffIcons_OnLocked" })
 	started = true

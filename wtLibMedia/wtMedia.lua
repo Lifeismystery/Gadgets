@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.9.4-beta
       Project Date (UTC)  : 2015-07-13T16:47:34Z
       File Modified (UTC) : 2013-06-11T06:19:15Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
@@ -25,13 +25,13 @@ local AddonId = toc.identifier
 
 		Library.Media.GetTexture(mediaId) -> AddonId, Filename, {Tags}
 			Gets a texture from the library
-			
+
 		Library.Media.FindMedia(tag) -> mediaId[]
-			Returns a list of media that matches the specified tag 
+			Returns a list of media that matches the specified tag
 
 		Library.Media.SetTexture(mediaId)
 			An extension to the Texture class, allows the setting of a media item
-			
+
 --]]
 
 -- DECLARE NAMESPACES -------------------------------------------------------
@@ -64,7 +64,7 @@ function Library.Media.FindMedia(tag) --> {textureEntry}, count
 	local matched = {}
 	local count = 0
 	for k,v in pairs(textures) do
-		if v.tags[tag] then 
+		if v.tags[tag] then
 			matched[k] = v
 			count = count + 1
 		end
@@ -80,7 +80,6 @@ function Library.Media.SetTexture(textureFrame, mediaId)
 		error("LibMedia(SetMedia) - Unknown media id: " .. mediaId)
 	end
 end
-
 
 -- Add a texture to the library.
 -- Tags are simple strings, which are used to specify characteristics of the texture.

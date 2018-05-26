@@ -11,7 +11,7 @@ Version = "v0.5.51"
 
 Environment = "1.10"
 
-RunOnStartup = 
+RunOnStartup =
 {
   "wtInitMedia.lua",
   "wtUnitFrame.lua",
@@ -30,9 +30,9 @@ RunOnStartup =
   "elements/wtStaticLabel.lua",
   "elements/wtBar.lua",
   "elements/wtBarHealth.lua",
-  --"elements/wtCanvas.lua",  
+  --"elements/wtCanvas.lua",
   "elements/wtBarWithBorder.lua",
-  "elements/wtHealthCap.lua",  
+  "elements/wtHealthCap.lua",
   "elements/wtImage.lua",
   "elements/wtImageSet.lua",
   "elements/wtMediaSet.lua",
@@ -45,6 +45,7 @@ RunOnStartup =
   "templates/HealthOrb.lua",
   "templates/ManaOrb.lua",
   "templates/OctanusRaidFrame.lua",
+  "templates/AileenHealFrame.lua",
   "templates/HealFrame.lua",
   "templates/jnhOrbs.lua",
   "templates/jnhOrbsReversed.lua",
@@ -56,24 +57,24 @@ RunOnStartup =
   "templates/LifeTargetOfTarget.lua",
   "templates/LifeGroupFrame.lua",
   "templates/LifeGroupFrame2.lua",
-  "templates/LifeMageFrame.lua",  
-  "templates/LifeOrbs.lua", 
+  "templates/LifeMageFrame.lua",
+  "templates/LifeOrbs.lua",
   "templates/HPframe.lua",
-  "templates/Manaframe.lua", 
+  "templates/Manaframe.lua",
 }
 
-SavedVariables = 
+SavedVariables =
 {
 }
 
-Embed = 
+Embed =
 {
 }
 
-Dependencies = 
+Dependencies =
 {
-	wtLibUnitDatabase = {"required", "before"},	
-	wtLibGadget = {"required", "before"},	
+	wtLibUnitDatabase = {"required", "before"},
+	wtLibGadget = {"required", "before"},
 }
 -- X-Curse-Packaged-Version: r20120505105758
 -- X-Curse-Project-Name: Gadgets

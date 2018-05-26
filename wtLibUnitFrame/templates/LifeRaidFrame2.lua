@@ -1,7 +1,7 @@
 local toc, data = ...
 local AddonId = toc.identifier
 
--- Frame Configuration Options --------------------------------------------------
+--Frame Configuration Options
 local LifeRaidFrame2 = WT.UnitFrame:Template("LifeRaidFrame2")
 LifeRaidFrame2.Configuration.Name = "Life Raid Frame 2"
 LifeRaidFrame2.Configuration.RaidSuitable = true
@@ -13,24 +13,23 @@ LifeRaidFrame2.Configuration.Resizable = { 55, 40, 500, 70 }
 LifeRaidFrame2.Configuration.SupportsHoTPanel = true
 LifeRaidFrame2.Configuration.SupportsDebuffPanel = true
 
---------------------------------------------------------------
 function LifeRaidFrame2:Construct(options)
 	local template =
 	{
-		elements = 
+		elements =
 		{
 			{
 				id="frameBackdrop", type="Frame", parent="frame", layer=0,
-				attach = 
-				{ 
+				attach =
+				{
 					{ point="TOPLEFT", element="frame", targetPoint="TOPLEFT", offsetX=1, offsetY=-1, },
-					{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT", offsetX=-1, offsetY=1, } 
-				},            				
-				visibilityBinding="id", 
+					{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT", offsetX=-1, offsetY=1, }
+				},
+				visibilityBinding="id",
 				color={r=0,g=0,b=0,a=0},
 				FrameAlpha = 1,
 				FrameAlphaBinding="FrameAlpha",
-			}, 
+			},
 			{
 				id="barHealth", type="Bar", parent="frameBackdrop", layer=10,
 				attach = {
@@ -38,11 +37,11 @@ function LifeRaidFrame2:Construct(options)
 					{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT", offsetX=-2, offsetY=-2 },
 				},
 				growthDirection="right",
-				binding="healthPercent",				
+				binding="healthPercent",
 				healthPercentColor={r=0.22,g=0.55,b=0.06, a=0.85},
-				colorBinding="healthPercentColor",	
+				colorBinding="healthPercentColor",
 				media="Texture 39",
-				backgroundColor={r=0.07, g=0.07, b=0.07, a=0.85},				
+				backgroundColor={r=0.07, g=0.07, b=0.07, a=0.85},
 			},
 			{
 				id="healthCap", type="HealthCap", parent="barHealth", layer=15,
@@ -55,7 +54,7 @@ function LifeRaidFrame2:Construct(options)
 				binding="healthCapPercent",
 				color={r=0.5, g=0, b=0, a=0.8},
 				media="wtGlaze",
-			},			
+			},
 			{
 				id="border", type="Bar", parent="frameBackdrop", layer=10, alpha=1,
 				attach = {
@@ -63,12 +62,12 @@ function LifeRaidFrame2:Construct(options)
 					{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT", offsetX=-2, offsetY=-2 },
 				},
 				binding="borderWigth",
-				backgroundColor={r=0, g=0, b=0, a=0},				
+				backgroundColor={r=0, g=0, b=0, a=0},
 				Color={r=0,g=0,b=0, a=0},
 				border=true, BorderColorBinding="BorderColor", BorderColor = {r=0,g=0,b=0,a=1},
 				borderTextureTarget=true, BorderTextureTargetVisibleBinding="BorderTextureTargetVisible", BorderTextureTargetVisible=true,
 				borderTextureAggro=true, BorderTextureAggroVisibleBinding="BorderTextureAggroVisible", BorderTextureAggroVisible=true,
-			},			
+			},
 			{
 				id="barAbsorb", type="BarWithBorder", parent="frameBackdrop", layer=12,
 				attach = {
@@ -78,19 +77,19 @@ function LifeRaidFrame2:Construct(options)
 				growthDirection="right",
 				binding="absorbPercent", color={r=0.1,g=0.79,b=0.79,a=1.0},
 				backgroundColor={r=0, g=0, b=0, a=0},
-				media="Texture 69", 
+				media="Texture 69",
 				fullBorder=true,
-				BarWithBorderColor={r=0,g=1,b=1,a=1}, 
+				BarWithBorderColor={r=0,g=1,b=1,a=1},
 			},
 			{
 				id="imgRole", type="MediaSet", parent="frameBackdrop", layer=20,
-				attach = {{ point="TOPLEFT", element="frame", targetPoint="TOPLEFT", offsetX=2, offsetY=-2 }}, 
+				attach = {{ point="TOPLEFT", element="frame", targetPoint="TOPLEFT", offsetX=2, offsetY=-2 }},
 				visibilityBinding="role",
-				nameBinding="role", 
+				nameBinding="role",
 				names = { ["tank"] = "iconRoleTank", ["heal"] = "iconRoleHeal", ["dps"] = "iconRoleDPS", ["support"] = "iconRoleSupport" },
 				width = 13, height = 13,
 				defaultIndex = "hide",
-			},		
+			},
 			{
 				id="labelName", type="Label", parent="frame", layer=20,
 				attach = {{ point="CENTER", element="frame", targetPoint="CENTER", offsetX=0, offsetY=3 }},
@@ -110,7 +109,7 @@ function LifeRaidFrame2:Construct(options)
 			    attach = {{ point="CENTERLEFT", element="labelName", targetPoint="CENTERRIGHT", offsetX=0, offsetY=0 }},
 			    width = 12, height = 12,
 			    nameBinding="mark",
-			    names = 
+			    names =
 			    {
 			        ["1"] = "riftMark01_mini",
 			        ["2"] = "riftMark02_mini",
@@ -150,7 +149,7 @@ function LifeRaidFrame2:Construct(options)
 			    attach = {{ point="CENTERRIGHT", element="imgMark", targetPoint="CENTERRIGHT", offsetX=7, offsetY=0 }},
 			    width = 12, height = 12,
 			    nameBinding="mark",
-			    names = 
+			    names =
 			    {
 			        ["19"] = "riftMark02_mini",
 			        ["20"] = "riftMark03_mini",
@@ -164,16 +163,15 @@ function LifeRaidFrame2:Construct(options)
 			{
 				id="imgReady", type="ImageSet", parent="frame", layer=30,
 				attach = {{ point="CENTER", element="frame", targetPoint="CENTER" }},
-				texAddon=AddonId, texFile="img/wtReady.png", nameBinding="readyStatus", cols=1, rows=2, 
+				texAddon=AddonId, texFile="img/wtReady.png", nameBinding="readyStatus", cols=1, rows=2,
 				names = { ["ready"] = 0, ["notready"] = 1 }, defaultIndex = "hide"
 			},
 			{
 				id="buffPanelDebuffs", type="BuffPanel", semantic="DebuffPanel", parent="frameBackdrop", layer=30,
 				attach = {{ point="BOTTOMRIGHT", element="frameBackdrop", targetPoint="BOTTOMRIGHT", offsetX=-1, offsetY=-3 }},
 				rows=1, cols=6, iconSize=16, iconSpacing=1, borderThickness=1,
-				auraType="debuff", 
+				auraType="debuff",
 				growthDirection = "left_up",
-				--timer = true, timerSize = 14, outline=true, 
 				rejectBuffs= options.BlackListDebuff,
 				acceptBuffs = options.WhiteListDebuff,
 				color={r=1,g=1,b=0,a=1},
@@ -183,17 +181,16 @@ function LifeRaidFrame2:Construct(options)
 				id="buffPanelHoTs", type="BuffPanel", semantic="HoTPanel", parent="frameBackdrop", layer=30,
 				attach = {{ point="TOPRIGHT", element="frameBackdrop", targetPoint="TOPRIGHT", offsetX=-1, offsetY=3 }},
 				rows=1, cols=6, iconSize=16, iconSpacing=0, borderThickness=1,
-				auraType="hot",selfCast=true, 
+				auraType="hot",selfCast=true,
 				rejectBuffs= options.BlackListHots,
 				acceptBuffs = options.WhiteListHots,
-				timer = true, timerSize = 11, outline=true, color={r=1,g=1,b=0,a=1}, 
+				timer = true, timerSize = 11, outline=true, color={r=1,g=1,b=0,a=1},
 				stack = true, stackSize = 12, outline=true,
 				growthDirection = "left_up",
 			},
-			
 		}
 	}
-	
+
 	for idx,element in ipairs(template.elements) do
 		local showElement = true
 		if not options.showAbsorb and element.id == "barAbsorb" then showElement = false end
@@ -208,7 +205,7 @@ function LifeRaidFrame2:Construct(options)
 
 	self:EventAttach(
 		Event.UI.Layout.Size,
-		function(el)	
+		function(el)
 			local newWidth = self:GetWidth()
 			local newHeight = self:GetHeight()
 			local fracWidth = newWidth / LifeRaidFrame2.Configuration.Width
@@ -219,18 +216,18 @@ function LifeRaidFrame2:Construct(options)
 			labName:SetFontSize(14)
 		end,
 		"LayoutSize")
-	
+
 	self:SetSecureMode("restricted")
 	self:SetMouseoverUnit(self.UnitSpec)
-	self:SetMouseMasking("limited")	
-	
-	if options.clickToTarget then 
+	self:SetMouseMasking("limited")
+
+	if options.clickToTarget then
 		self:EventMacroSet(Event.UI.Input.Mouse.Left.Click, "target @" .. self.UnitSpec)
 	end
+
 	if options.contextMenu then
 		self:EventAttach(Event.UI.Input.Mouse.Right.Click, function(self, h)
 			if self.UnitId then Command.Unit.Menu(self.UnitId) end
 		end, "Event.UI.Input.Mouse.Right.Click")
-	end 
-	
- end  
+	end
+ end

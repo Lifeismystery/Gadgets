@@ -11,16 +11,16 @@ Version = "v0.9.4-beta"
 
 Environment = "1.10"
 
-RunOnStartup = 
+RunOnStartup =
 {
-  "wtTranslate.lua", 
-  
+  "wtTranslate.lua",
+
   "localization/Localization_en.lua",
   "localization/Localization_de.lua",
   "localization/Localization_fr.lua",
   "localization/Localization_ko.lua",
   "localization/Localization_ru.lua",
-  
+
   "wtInit.lua",
   "wtLog.lua",
   "wtCore.lua",
@@ -29,17 +29,17 @@ RunOnStartup =
   "wtColorRef.lua",
 }
 
-SavedVariables = 
+SavedVariables =
 {
 	wtxOptions = "account",
-	wtxLogLevel = "account",	
+	wtxLogLevel = "account",
 }
 
-Embed = 
+Embed =
 {
 }
 
-Dependencies = 
+Dependencies =
 {
 	wtLibMedia = {"required", "before"},
 }

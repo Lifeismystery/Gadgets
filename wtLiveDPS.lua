@@ -7,39 +7,53 @@ local toc, data = ...
 local AddonId = toc.identifier
 local TXT=Library.Translate
 
--- wtFPSGadget creates a really simple "FPS" gadget for displaying Frames Per Second
-
 local gadgetIndex = 0
 local dpsGadgets = {}
 
 local function Create(configuration)
-
 	local wrapper = UI.CreateFrame("Frame", WT.UniqueName("wtFPS"), WT.Context)
 	wrapper:SetWidth(150)
 	wrapper:SetHeight(52)
-	wrapper:SetBackgroundColor(0,0,0,0.4)
+	wrapper:SetBackgroundColor(0,0,0,0)
 
 	local dpsHeading = UI.CreateFrame("Text", WT.UniqueName("wtFPS"), wrapper)
 	dpsHeading:SetText("LIVE DPS")
 	dpsHeading:SetFontSize(10)
-
+	dpsHeading:SetEffectGlow({ 		blurX = 4,			--Controls how much blurring exists along the X axis. Defaults to 2.
+		blurY = 4,			--Controls how much blurring exists along the Y axis. Defaults to 2.
+		colorR = 0,		--Controls the red channel of the glow effect. Defaults to 0.
+		colorG = 0,		--Controls the green channel of the glow effect. Defaults to 0.
+		colorB = 0,		--Controls the blue channel of the glow effect. Defaults to 0.
+		colorA = 1,			--Controls the alpha channel of the glow effect. Defaults to 1.
+		offsetX = 0,		--Controls the glow offset along the X axis. Defaults to 0.
+		offsetY = 0,		--Controls the glow offset along the Y axis. Defaults to 0.
+		strength = 3,		--Controls the strength of the glow. Defaults to 1.  
+		})
 	local dpsFrame = UI.CreateFrame("Text", WT.UniqueName("wtFPS"), wrapper)
 	dpsFrame:SetText("")
 	dpsFrame:SetFontSize(24)
 	dpsFrame.currText = ""
-
+	dpsFrame:SetEffectGlow({ 		blurX = 4,			--Controls how much blurring exists along the X axis. Defaults to 2.
+		blurY = 4,			--Controls how much blurring exists along the Y axis. Defaults to 2.
+		colorR = 0,		--Controls the red channel of the glow effect. Defaults to 0.
+		colorG = 0,		--Controls the green channel of the glow effect. Defaults to 0.
+		colorB = 0,		--Controls the blue channel of the glow effect. Defaults to 0.
+		colorA = 1,			--Controls the alpha channel of the glow effect. Defaults to 1.
+		offsetX = 0,		--Controls the glow offset along the X axis. Defaults to 0.
+		offsetY = 0,		--Controls the glow offset along the Y axis. Defaults to 0.
+		strength = 3,		--Controls the strength of the glow. Defaults to 1.  
+		})
 	dpsHeading:SetPoint("TOPCENTER", wrapper, "TOPCENTER", 0, 5)
 	dpsFrame:SetPoint("TOPCENTER", dpsHeading, "BOTTOMCENTER", 0, -5)
 
 	table.insert(dpsGadgets, dpsFrame)
-	return wrapper, { resizable={150, 52, 150, 70} }
-	
-end
 
+	return wrapper, { resizable={150, 52, 150, 70} }
+end
 
 local dialog = false
 
-local function ConfigDialog(container)	
+local function ConfigDialog(container)
 	dialog = WT.Dialog(container)
 		:Label("This gadget displays a live measure of the player's DPS")
 end
@@ -52,7 +66,6 @@ local function SetConfiguration(config)
 	dialog:SetValues(config)
 end
 
-
 WT.Gadget.RegisterFactory("DPS",
 	{
 		name="DPS:Live",
@@ -60,13 +73,12 @@ WT.Gadget.RegisterFactory("DPS",
 		author="Wildtide",
 		version="1.0.0",
 		iconTexAddon=AddonId,
-		iconTexFile="img/wtDPS.png",
+		iconTexFile="img/menuIcons/wtDPS.png",
 		["Create"] = Create,
 		["ConfigDialog"] = ConfigDialog,
-		["GetConfiguration"] = GetConfiguration, 
-		["SetConfiguration"] = SetConfiguration, 
+		["GetConfiguration"] = GetConfiguration,
+		["SetConfiguration"] = SetConfiguration,
 	})
-
 
 local dmgAccum = 0
 local healAccum = 0
@@ -103,11 +115,9 @@ local function OnTick(hEvent)
 	end
 end
 
-
 local function OnDamage(hEvent, info)
-
 	if not info.damage then return end
-	
+
 	if info.caster == WT.Player.id then
 		dmgAccum = dmgAccum + info.damage + (info.damageAbsorbed or 0)
 	else
@@ -116,11 +126,9 @@ local function OnDamage(hEvent, info)
 			dmgAccum = dmgAccum + info.damage + (info.damageAbsorbed or 0)
 		end
 	end
-	
 end
 
 local function OnHeal(hEvent, info)
-
 	if not info.heal then return end
 
 	if info.caster == WT.Player.id then
@@ -134,6 +142,6 @@ local function OnHeal(hEvent, info)
 	
 end
 
-Command.Event.Attach(Event.System.Update.Begin, OnTick, "OnTick")
+Command.Event.Attach(WT.Event.Tick, OnTick, "OnTick")
 Command.Event.Attach(Event.Combat.Damage, OnDamage, "OnDamage")
 Command.Event.Attach(Event.Combat.Heal, OnHeal, "OnHeal")

@@ -2,24 +2,24 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.9.4-beta
       Project Date (UTC)  : 2015-07-13T16:47:34Z
       File Modified (UTC) : 2013-05-20T07:13:55Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
 local AddonId = toc.identifier
 local TXT = Library.Translate
 
---[[ 
+--[[
 	wtCore
 	wtLibrary Core Functionality
-	
-	Namespaces: 
-		WT 
+
+	Namespaces:
+		WT
 		WT.Event
 		WT.Event.Trigger
 
@@ -57,20 +57,28 @@ WT.Event.Trigger.Tick, WT.Event.Tick = Utility.Event.Create(AddonId, "Tick")
 local FPSTimer = 0
 local FPSFrameCount = 0
 local LastFrameTime = nil
-
+local LastTime = nil
+local TimeSeg = 1.0
+local lastDelta = nil
+local function getThrottle(now)
+	elapsed = now - lastDelta
+	if (elapsed >= (TimeSeg)) then 
+		return true 
+	end
+end
 
 -- Per frame Tick event
--- Calculates FPS every second, and fires off the tick event. 
+-- Calculates FPS every second, and fires off the tick event.
 function WT.Tick()
 	FPSTimer = FPSTimer + WT.FrameDeltaTime
 	FPSFrameCount = FPSFrameCount + 1
 	if (FPSTimer > 1) then
 		WT.FPS = FPSFrameCount / FPSTimer
 		FPSFrameCount = 0
-		FPSTimer = 0 
+		FPSTimer = 0
 	end
 	WT.Event.Trigger.Tick(WT.FrameDeltaTime, WT.FrameIndex)
-	
+
 	-- Process any currently active faders
 	for frame, fader in pairs(WT.Faders) do
 		fader.elapsed = fader.elapsed + WT.FrameDeltaTime
@@ -93,49 +101,54 @@ function WT.Tick()
 			end
 		end
 	end
-	
 end
 
-
--- Event Handler: Event.System.Update.Begin
-function WT.OnSystemUpdateBegin()
+function WT.OnSystemUpdateEndWorker()
+	--WT.runProcess(WT.wakeUpWaitingThreads)
+	WT.runProcess(WT.Tick)
+end
+function WT.OnSystemUpdateBeginWorker()
 	local currFrame = Inspect.Time.Frame()
 	local lastFrame = LastFrameTime or currFrame	
 	WT.FrameIndex = WT.FrameIndex + 1
 	WT.FrameDeltaTime = currFrame - lastFrame
 	WT.AddonUpTime = currFrame - WT.AddonStartTime
-	WT.Tick()
-	LastFrameTime = currFrame
+	--WT.runProcess(WT.Tick)
+	LastFrameTime = currFrame 
+end
+-- Event Handler: Event.System.Update.Begin
+function WT.OnSystemUpdateBegin()
+	WT.runProcess(WT.wakeUpWaitingThreads)
+	WT.runProcess(WT.OnSystemUpdateBeginWorker)
 end
 
-
+function WT.OnSystemUpdateEnd()
+	WT.runProcess(WT.OnSystemUpdateEndWorker)	
+end
 -- Event Handler: Event.Addon.Load.End
 function WT.OnAddonLoadEnd(hEvent, addonId)
 	WT.Log.Info("Addon Loaded: " .. addonId or "<Unnamed>")
 end
 
-
 -- All addons have been executed
--- Runs any functions in the WT.Initializers table. Allows dependent WT addons to defer initialization until everything has loaded 
+-- Runs any functions in the WT.Initializers table. Allows dependent WT addons to defer initialization until everything has loaded
 function WT.OnAddonStartupEnd(hEvent)
 	WT.Log.Info("All addons have started up")
 
 	-- Run any initializers
 	WT.WatchdogSleep()
 	for idx,init in ipairs(WT.Initializers) do
-		WT.Log.Info("Running initializer...") 
+		WT.Log.Info("Running initializer...")
 		init()
-	end		
+	end
 	if WT.DEBUG then
 		if WT.Sandpit then
-			WT.Log.Info("Sandpit found") 
-			WT.Sandpit() 
+			WT.Log.Info("Sandpit found")
+			WT.Sandpit()
 		end
 	end
 	initializersRun = true
-
 end
-
 
 -- Standard command handler for /wt commands
 function WT.OnSlashCommand(hEvent, cmd)
@@ -153,7 +166,6 @@ function WT.OnSlashCommand(hEvent, cmd)
 	end
 end
 
-
 local function dumpFrame(frame, indent)
 	local txt = ""
 	for i=0,indent do txt = txt .. "  " end
@@ -166,11 +178,17 @@ end
 function WT.Command.dumpframes()
 	dumpFrame(WT.Context, 0)
 end
-
+function WT.Command.units() 
+	count = 0
+	for _ in pairs(WT.Units) do
+		count = count + 1 
+	end
+	print("Total unit size: "..count)            -- prints "2"
+end
 
 -- Command /wt cpu [detail]
 -- Displays detailed CPU statistics for all addons
-function WT.Command.cpu(options)
+function WT.Command.cpu(options)	
 	for addonId, cpuData in pairs(Inspect.Addon.Cpu()) do
 		if cpuData then
 			if options[1] == "detail" then
@@ -188,7 +206,6 @@ function WT.Command.cpu(options)
 	end
 end
 
-
 -- Core utility mechanism for generating unique keys
 function WT.UniqueName(prefix, suffix)
 	local count = WT.NameCounters[prefix] or 0
@@ -199,10 +216,8 @@ function WT.UniqueName(prefix, suffix)
 	return name
 end
 
-
 function WT.OnSavedVariablesLoaded(hEvent, addonId)
 end
-
 
 function WT.FadeIn(frame, duration)
 	WT.Faders[frame] = { ["duration"] = duration, direction="in", elapsed=0.0 }
@@ -219,6 +234,10 @@ end
 function WT.WatchdogSleep()
 	if not Inspect.System.Secure() then
 		Command.System.Watchdog.Quiet()
+	else 
+		if Inspect.System.Watchdog() < 0.1 then
+			WT.waitSeconds(0.1)
+		end
 	end
 end
 
@@ -229,7 +248,8 @@ end
 
 -- ADDON INITIALISATION
 -------------------------------------------------------------------------------
-Command.Event.Attach(Event.System.Update.Begin, WT.OnSystemUpdateBegin, "OnSystemUpdateBegin")
+Command.Event.Attach(Event.System.Update.Begin, WT.OnSystemUpdateBegin, "WTCore_OnSystemUpdateBegin")
+Command.Event.Attach(Event.System.Update.End, WT.OnSystemUpdateEnd, "WTCore_OnSystemUpdateEnd")
 Command.Event.Attach(Event.Addon.Load.End, WT.OnAddonLoadEnd, "OnAddonLoadEnd")
 Command.Event.Attach(Event.Addon.Startup.End, WT.OnAddonStartupEnd, "OnAddonStartupEnd")
 Command.Event.Attach(Event.Addon.SavedVariables.Load.End, WT.OnSavedVariablesLoaded, "OnAddonVariablesLoaded")

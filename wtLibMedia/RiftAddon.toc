@@ -11,20 +11,20 @@ Version = "v0.9.4-beta"
 
 Environment = "1.10"
 
-RunOnStartup = 
+RunOnStartup =
 {
   "wtMedia.lua",
 }
 
-SavedVariables = 
+SavedVariables =
 {
 }
 
-Embed = 
+Embed =
 {
 }
 
-Dependencies = 
+Dependencies =
 {
 }
 -- X-Curse-Packaged-Version: v0.9.4-beta

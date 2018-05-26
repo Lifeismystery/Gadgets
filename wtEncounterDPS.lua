@@ -7,13 +7,10 @@ local toc, data = ...
 local AddonId = toc.identifier
 local TXT=Library.Translate
 
--- wtFPSGadget creates a really simple "FPS" gadget for displaying Frames Per Second
-
 local gadgetIndex = 0
 local dpsGadgets = {}
 
 local function Create(configuration)
-
 	local wrapper = UI.CreateFrame("Frame", WT.UniqueName("wtFPS"), WT.Context)
 	wrapper:SetWidth(150)
 	wrapper:SetHeight(52)
@@ -32,14 +29,13 @@ local function Create(configuration)
 	dpsFrame:SetPoint("TOPCENTER", dpsHeading, "BOTTOMCENTER", 0, -5)
 
 	table.insert(dpsGadgets, dpsFrame)
-	return wrapper, { resizable={150, 52, 150, 70} }
-	
-end
 
+	return wrapper, { resizable={150, 52, 150, 70} }
+end
 
 local dialog = false
 
-local function ConfigDialog(container)	
+local function ConfigDialog(container)
 	dialog = WT.Dialog(container)
 		:Label("This gadget displays a measure of the player's DPS in the current/last encounter")
 end
@@ -52,7 +48,6 @@ local function SetConfiguration(config)
 	dialog:SetValues(config)
 end
 
-
 WT.Gadget.RegisterFactory("EncounterDPS",
 	{
 		name="DPS:Encounter",
@@ -60,20 +55,18 @@ WT.Gadget.RegisterFactory("EncounterDPS",
 		author="Wildtide",
 		version="1.0.0",
 		iconTexAddon=AddonId,
-		iconTexFile="img/wtDPS.png",
+		iconTexFile="img/menuIcons/wtDPS.png",
 		["Create"] = Create,
 		["ConfigDialog"] = ConfigDialog,
-		["GetConfiguration"] = GetConfiguration, 
-		["SetConfiguration"] = SetConfiguration, 
+		["GetConfiguration"] = GetConfiguration,
+		["SetConfiguration"] = SetConfiguration,
 	})
-
 
 local lastDamageTime = 0
 local encounterStart = 0
 local damage = 0
 
 local function OnDamage(hEvent, info)
-
 	if not info.damage then return end
 
 	local isPlayer = false
@@ -95,7 +88,7 @@ local function OnDamage(hEvent, info)
 		damage = 0
 		encounterStart = currTime
 	end
-	
+
 	lastDamageTime = currTime
 	damage = damage + info.damage  + (info.damageAbsorbed or 0)
 
@@ -106,7 +99,6 @@ local function OnDamage(hEvent, info)
 			frame:SetText(tostring(encounterDPS))
 		end
 	end
-
 end
 
 Command.Event.Attach(Event.Combat.Damage, OnDamage, "OnEncounterDamage")

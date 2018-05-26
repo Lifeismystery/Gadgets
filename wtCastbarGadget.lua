@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.8.1
       Project Date (UTC)  : 2013-09-17T18:45:13Z
       File Modified (UTC) : 2013-09-16T14:06:04Z (lifeismystery)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
@@ -16,7 +16,6 @@ local AddonId = toc.identifier
 local PHICON = "Data/\\UI\\texture\\global\\placeholder_icon.dds"
 
 -- wtCastBar provides a simple bar for the player's cast bar
-
 local function OnCastName(unitFrame, castname)
 	if castname then
 		local unit = unitFrame.Unit
@@ -39,42 +38,41 @@ local function OnCastName(unitFrame, castname)
 			end
 		end
 		if unit.castUninterruptible then
-			unitFrame.barCast.Image:SetTexture(unitFrame.mediaNoInterrupt.addonId, unitFrame.mediaNoInterrupt.filename)  
+			unitFrame.barCast.Image:SetTexture(unitFrame.mediaNoInterrupt.addonId, unitFrame.mediaNoInterrupt.filename)
 			unitFrame.barCast.Image:SetBackgroundColor(unitFrame.colorNoInterrupt[1], unitFrame.colorNoInterrupt[2], unitFrame.colorNoInterrupt[3], unitFrame.colorNoInterrupt[4])
 		else
-			unitFrame.barCast.Image:SetTexture(unitFrame.mediaInterrupt.addonId, unitFrame.mediaInterrupt.filename)  
+			unitFrame.barCast.Image:SetTexture(unitFrame.mediaInterrupt.addonId, unitFrame.mediaInterrupt.filename)
 			unitFrame.barCast.Image:SetBackgroundColor(unitFrame.colorInterrupt[1], unitFrame.colorInterrupt[2], unitFrame.colorInterrupt[3], unitFrame.colorInterrupt[4])
 		end
 	end
 end
 
 local function Create(configuration)
-
 	local castBar = WT.UnitFrame:Create(configuration.unitSpec)
 	castBar:SetWidth(170)
 	castBar:SetHeight(24)
 	if not configuration.hideNotCasting then
 		castBar:SetBackgroundColor(0,0,0,0.4)
 	end
-	
+
 	if configuration.cbColorInt == nil then configuration.cbColorInt = {0.42,0.69,0.81,1.0} end
 	if configuration.cbColorNonInt == nil then configuration.cbColorNonInt = {0.9,0.7,0.3,1.0} end
 
 	if configuration.TransparentCastBar == true then configuration.backgroundColor={r=0.07,g=0.07,b=0.07, a=0.85} end
-	
+
 	castBar.mediaInterrupt = Library.Media.GetTexture(configuration.texture)
 	castBar.mediaNoInterrupt = Library.Media.GetTexture(configuration.textureNoInterrupt)
 
 	castBar.colorInterrupt = configuration.cbColorInt
 	castBar.colorNoInterrupt = configuration.cbColorNonInt
-	
+
 	castBar.font = Library.Media.GetFont(configuration.font)
 	castBar.textFontSize = configuration.fontSize
 
 	castBar.smallTimer = configuration.smallCastTime
-	
+
 	castBar.largeCastFont = configuration.largeCastFont
-	
+
 	castBar.barCast = castBar:CreateElement(
 	{
 		id="barCast", type="Bar", parent="frame", layer=25,
@@ -112,11 +110,11 @@ local function Create(configuration)
 				attach = {{ point="CENTERLEFT", element="barCast", targetPoint="CENTERLEFT", offsetX=6, offsetY=0 }},
 				visibilityBinding="castName",
 				text="", default="", fontSize= 0, font = configuration.font
-			})	
+			})
 	end
-	
+
 	if configuration.showCastTime then
-		if not configuration.CastNameAbove or configuration.CastNameAbove == nil then	
+		if not configuration.CastNameAbove or configuration.CastNameAbove == nil then
 			castBar.labelTime = castBar:CreateElement(
 			{
 				id="labelTime", type="Label", parent="frame", layer=26,
@@ -124,7 +122,7 @@ local function Create(configuration)
 				visibilityBinding="castName",
 				text="{castTime}", default="", fontSize= configuration.fontSize, outline = true, font = configuration.font,
 			})
-			
+
 			if configuration.smallCastTime then
 				castBar.labelTime:ClearAll()
 				castBar.labelTime:SetPoint("CENTERRIGHT", castBar.barCast, "CENTERRIGHT", -4, 0)
@@ -141,16 +139,13 @@ local function Create(configuration)
 				text="{castTime}", default="", fontSize= configuration.fontSize, outline = true, font = configuration.font,
 			})
 		end
-		
+
 		-- Mask out the label so it doesn't crash into the timer
 		castBar.labelMask = UI.CreateFrame("Mask", "LabelMask", castBar)
 		castBar.labelMask:SetLayer(26)
 		castBar.labelMask:SetPoint("TOPLEFT", castBar.barCast, "TOPLEFT")
 		castBar.labelMask:SetPoint("BOTTOM", castBar.barCast, "BOTTOM")
 		castBar.labelMask:SetPoint("RIGHT", castBar.labelTime, "LEFT", -8, nil)
-		
-		--castBar.labelCast:SetParent(castBar.labelMask)
-		
 	end
 
 	if configuration.showIcon then
@@ -160,7 +155,7 @@ local function Create(configuration)
 			visibilityBinding="castName", texAddon="Rift", texFile=PHICON
 		})
 	end
-	
+
     if configuration.Border then
 	castBar.Border = castBar:CreateElement({
 		id="CastbarBorder", type="Frame", parent="frame", layer=10,
@@ -168,14 +163,14 @@ local function Create(configuration)
 			{ point="TOPLEFT", element="frame", targetPoint="TOPLEFT" },
 			{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT" },
 		},
-			visibilityBinding="castName", 
+			visibilityBinding="castName",
 			color={r=0,g=0,b=0,a=0},
 			BorderColorBinding="BorderColor3", border=true, BorderColor3 = {r=0,g=0,b=0,a=1},
 	})
 	end
-	
-	castBar.OnResize = 
-		function(frame)		
+
+	castBar.OnResize =
+		function(frame)
 		local fh = frame:GetHeight()
 			local lg = 0.4
 			if castBar.largeCastFont then lg = 0.5 end
@@ -188,7 +183,7 @@ local function Create(configuration)
 				castBar.icon:SetWidth(fh)
 			end
 		end
-	
+
 	castBar.barCast:EventAttach(Event.UI.Layout.Size, function(self, h)
 		castBar.OnResize(castBar)
 	end, "Event.UI.Layout.Size")
@@ -203,19 +198,18 @@ end
 local dialog = false
 
 local function ConfigDialog(container)
-
 	local lMedia = Library.Media.FindMedia("bar")
 	local listMedia = {}
 	for mediaId, media in pairs(lMedia) do
 		table.insert(listMedia, { ["text"]=mediaId, ["value"]=mediaId })
 	end
-	
+
 	local lfont = Library.Media.GetFontIds("font")
 	local listfont = {}
 	for v, k in pairs(lfont) do
 		table.insert(listfont, { value=k })
 	end
-	
+
 	dialog = WT.Dialog(container)
 		:Label("The cast bar gadget shows a cast bar for the unit selected.")
 		:Combobox("unitSpec", "Unit to track", "player",
@@ -226,7 +220,7 @@ local function ConfigDialog(container)
 				{text="Focus", value="focus"},
 				{text="Focus's Target", value="focus.target"},
 				{text="Pet", value="player.pet"},
-			}, false)		
+			}, false)
 		:TexSelect("texture", "Texture", "Texture 82", "bar")
 		:ColorPicker("cbColorInt", "Interruptible color", 0.42,0.69,0.81,1.0)
 		:TexSelect("textureNoInterrupt", "Noninterruptable Texture", "Texture 87", "bar")
@@ -242,7 +236,6 @@ local function ConfigDialog(container)
 		:Checkbox("TransparentCastBar", "Transparent cast bar", true)
 		:Checkbox("Border", "Show cast bar border", true)
 		:Checkbox("largeCastFont", "Larger cast font", true)
-		
 end
 
 local function GetConfiguration()
@@ -254,20 +247,19 @@ local function SetConfiguration(config)
 end
 
 local function Reconfigure(config)
-
 	assert(config.id, "No id provided in reconfiguration details")
-	
+
 	local gadgetConfig = wtxGadgets[config.id]
 	local gadget = WT.Gadgets[config.id]
-	
+
 	assert(gadget, "Gadget id does not exist in WT.Gadgets")
 	assert(gadgetConfig, "Gadget id does not exist in wtxGadgets")
 	assert(gadgetConfig.type == "CastBar", "Reconfigure Gadget is not a castbar")
-	
+
 	-- Detect changes to config and apply them to the gadget
-	
+
 	local requireRecreate = false
-	
+
 	if gadgetConfig.unitSpec ~= config.unitSpec then
 		gadgetConfig.unitSpec = config.unitSpec
 		requireRecreate = true
@@ -287,7 +279,7 @@ local function Reconfigure(config)
 		gadgetConfig.fontSize = config.fontSize
 		gadget.textFontSize = config.fontSize
 	end
-	
+
 	if gadgetConfig.hideNotCasting ~= config.hideNotCasting then
 		gadgetConfig.hideNotCasting = config.hideNotCasting
 		if not config.hideNotCasting then
@@ -311,7 +303,7 @@ local function Reconfigure(config)
 		gadgetConfig.showCastTime = config.showCastTime
 		requireRecreate = true
 	end
-	
+
 	if gadgetConfig.showCastName ~= config.showCastName then
 		gadgetConfig.showCastName = config.showCastName
 		requireRecreate = true
@@ -320,14 +312,14 @@ local function Reconfigure(config)
 	if gadgetConfig.CastNameAbove ~= config.CastNameAbove then
 		gadgetConfig.CastNameAbove = config.CastNameAbove
 		requireRecreate = true
-	end	
+	end
 
 	if gadgetConfig.smallCastTime ~= config.smallCastTime then
 		gadgetConfig.smallCastTime = config.smallCastTime
 		gadget.smallTimer = config.smallCastTime
 		gadget:OnResize()
 	end
-	
+
 	if gadgetConfig.showIcon ~= config.showIcon then
 		gadgetConfig.showIcon = config.showIcon
 		requireRecreate = true
@@ -337,23 +329,22 @@ local function Reconfigure(config)
 		gadgetConfig.TransparentCastBar = config.TransparentCastBar
 		requireRecreate = true
 	end
-	
+
 	if gadgetConfig.Border ~= config.Border then
 		gadgetConfig.Border = config.Border
 		requireRecreate = true
 	end
-	
+
 	if gadgetConfig.largeCastFont ~= config.largeCastFont then
 		gadgetConfig.largeCastFont = config.largeCastFont
 		gadget.largeCastFont = config.largeCastFont
 		requireRecreate = true
 	end
-	
+
 	if requireRecreate then
 		WT.Gadget.Delete(gadgetConfig.id)
 		WT.Gadget.Create(gadgetConfig)
-	end		
-	
+	end
 end
 
 WT.Unit.CreateVirtualProperty("BorderColor3", { "id", "castName"},
@@ -364,7 +355,7 @@ WT.Unit.CreateVirtualProperty("BorderColor3", { "id", "castName"},
 			return { r=0, g=0, b=0, a=0 }
 		end
 	end)
-	
+
 WT.Gadget.RegisterFactory("CastBar",
 	{
 		name="Castbar",
@@ -372,10 +363,10 @@ WT.Gadget.RegisterFactory("CastBar",
 		author="Wildtide/Adelea",
 		version="1.1.0",
 		iconTexAddon=AddonId,
-		iconTexFile="img/wtCastBar.png",
+		iconTexFile="img/menuIcons/wtCastBar.png",
 		["Create"] = Create,
 		["ConfigDialog"] = ConfigDialog,
-		["GetConfiguration"] = GetConfiguration, 
-		["SetConfiguration"] = SetConfiguration, 
+		["GetConfiguration"] = GetConfiguration,
+		["SetConfiguration"] = SetConfiguration,
 		["Reconfigure"] = Reconfigure,
 	})

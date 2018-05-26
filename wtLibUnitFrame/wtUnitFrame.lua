@@ -1,23 +1,23 @@
---[[ 
-	This file is part of Wildtide's WT Addon Framework 
+--[[
+	This file is part of Wildtide's WT Addon Framework
 	Wildtide @ Blightweald (EU) / DoomSprout @ forums.riftgame.com
 
 	WT.UnitFrame
-	
+
 		Inherits from Frame
-		
+
 		Provides a base class for the implementation of unit frames. A unit frame is linked to a
 		unit specifier, and provides a mechanism for binding properties on a unit to function calls
 		allowing a unit frame to automatically update itself as the underlying unit state changes.
 
 	API
-	
+
 		Static Methods
-		
+
 			WT.UnitFrame.CreateFromTemplate(templateName, unitSpec)
 				Creates an instance of a unit frame based on the requested template, linked to the requested
 				unit specifier.
-		
+
 			WT.UnitFrame:Create(unitSpec)
 				Create an instance of a unit frame and attach it to @unitSpec
 
@@ -32,18 +32,18 @@
 
 			unitFrame:CreateBinding(property, bindToObject, bindToMethod, default, converter)
 				Creates a binding between the property, and a method on an object. Whenever the property
-				changes, the binding method will be called with the value of the property, unless the value 
+				changes, the binding method will be called with the value of the property, unless the value
 				is nil/false where the default is used.
 				If a converter function is provided, any non-default values will be passed through this
-				function prior to the method being called. 
+				function prior to the method being called.
 
 			unitFrame:CreateTokenBinding(tokenString, bindToObject, bindToMethod, default, converter)
 				Creates a binding between a token string and an object method. The token string can contain
-				plain text and tokens wrapped in braces {}. Tokens are replaced by the property with the same 
+				plain text and tokens wrapped in braces {}. Tokens are replaced by the property with the same
 				name, e.g. {name} will be replaced by the unit's name.
 				Note: Every token in the token string must be backed by a property with a value. If any
 				of the properties are not available, the default value is returned.
-				Example usage: uf:CreateTokenBinding("{health}/{healthMax}", txtHealth, txtHealth.SetText, "") 
+				Example usage: uf:CreateTokenBinding("{health}/{healthMax}", txtHealth, txtHealth.SetText, "")
 
 			unitFrame:CreateTextField(property, default, parentFrame)
 				Creates a new Text frame, automatically bound to the provided property.
@@ -65,10 +65,10 @@
 						This will set the width of the bar to the provided percentage of its full width
 					:SetColor(r,g,b,a)
 						This will set the background color of the associated Texture frame. Bar textures have to
-						be designed with appropriate transparency for this to have an effect. 
+						be designed with appropriate transparency for this to have an effect.
 
 		Subclass Override Methods
-		
+
 			unitFrame:OnUnitSet(unitId)
 			unitFrame:OnUnitCleared()
 			unitframe:OnBuffAdded(buffId, buff, priority)
@@ -76,21 +76,21 @@
 			unitframe:OnBuffRemoved(buffId, buff, priority)
 			unitframe:OnCastBegin(castbarDetails)
 			unitframe:OnCastEnd()
-			
+
 		Instance Properties
-		
+
 			Unit		References a Unit from the UnitDatabase, or nil if no current unit
 			UnitSpec	The UnitSpec associated with the frame. Do not change this value
 
 		Notes
-		
+
 			It is not expected that a client addon will directly create a UnitFrame instance. A WT.UnitFrameTemplate
 			should be defined that handles the construction of a specific UnitFrame, and it is this template that will
 			implement methods as required.
-			
+
 			A client will therefore use WT.CreateUnitFrame(templateName, unitSpec) to create an instance of a unit frame.
-			
-			For complex bindings to multiple source properties, use a virtual property. These are defined within the 
+
+			For complex bindings to multiple source properties, use a virtual property. These are defined within the
 			unit database, using WT.UnitDatabase.CreateVirtualProperty(...)
 --]]
 
@@ -108,7 +108,8 @@ WT.UnitFrameContext:SetSecureMode("restricted")
 -- namespaces for element implementations
 WT.Element = {} 
 WT.ElementFactories = {}
-
+WT.Event.Trigger.SecureLock, WT.Event.SecureLock = Utility.Event.Create(AddonId, "SecureLock")
+WT.Event.Trigger.SecureUnlock, WT.Event.SecureUnlock = Utility.Event.Create(AddonId, "SecureUnLock")
 WT.UnitFrame_mt = 
 { 	
 	__index = function(tbl, name)
@@ -133,7 +134,6 @@ function WT.UnitFrame.UniqueName()
 	return WT.UniqueName("WT_FRAME")
 end
 
-
 function WT.UnitFrame:Template(templateName)
 	local obj = {}
 	obj.Template = templateName
@@ -143,9 +143,7 @@ function WT.UnitFrame:Template(templateName)
 	return obj
 end
 
-
 function WT.UnitFrame:CreateElement(configuration, forceParent)
-
 	if not configuration.type then
 		WT.Log.Error("No type specified in element configuration")
 		return nil
@@ -174,24 +172,9 @@ function WT.UnitFrame:CreateElement(configuration, forceParent)
 	end
 
 	self.Elements[configuration.id] = element
-	
+
 	return element
-
 end
-
---[[ 
-local el = frame:CreateElement
-{
-	id = "buffPanel01",
-	type = "BuffPanel",
-	binding = "Buffs",
-	anchorTo = { element = self, point = "TOPLEFT", targetPoint = "TOPLEFT", offsetX = 5, offsetY = 5 },
-	rows=1, cols=5, iconSize=20, iconSpacing=1, borderThickness=1, 
-	acceptLowPriorityBuffs=true, acceptMediumPriorityBuffs=true, acceptHighPriorityBuffs=true, acceptCriticalPriorityBuffs=true,
-	acceptLowPriorityDebuffs=false, acceptMediumPriorityDebuffs=false, acceptHighPriorityDebuffs=false, acceptCriticalPriorityDebuffs=false,
-	growthDirection = "left_up"
-}
---]]
 
 function WT.UnitFrame:TrackUnit(unitSpec)
 
@@ -200,7 +183,7 @@ function WT.UnitFrame:TrackUnit(unitSpec)
 	end
 
 	if not unitChangeTrackers[unitSpec] then
-		unitChangeTrackers[unitSpec] = 
+		unitChangeTrackers[unitSpec] =
 			function(unitId)
 				for idx,frame in ipairs(WT.UnitFrames) do
 					if frame.UnitSpec == unitSpec then
@@ -215,7 +198,6 @@ function WT.UnitFrame:TrackUnit(unitSpec)
 	local unitId = Inspect.Unit.Lookup(unitSpec)
 	self:PopulateUnit(unitId)
 	WT.SecureFunction(function() self:RebuildMacros() end)
-
 end
 
 -- Creates a new instance of a UnitFrame, which inherits from UI.Frame
@@ -227,42 +209,40 @@ end
 function WT.UnitFrame:Create(unitSpec, options)
 
 	local frameName = WT.UniqueName("WT_UNITFRAME", unitSpec)
-	
+
 	if not self.Configuration then self.Configuration = {} end
-	
+
 	local frame = UI.CreateFrame(self.Configuration.FrameType or "Frame", frameName, WT.UnitFrameContext)
 	if self.Configuration.Width then frame:SetWidth(self.Configuration.Width) end
 	if self.Configuration.Height then frame:SetHeight(self.Configuration.Height) end
 
 	-- store a reference to the subclass that is actually being created
 	frame._class = self
-	
+
 	if not WT.UnitFrame._uiFrame_index then
 		WT.UnitFrame._uiFrame_index = getmetatable(frame).__index
 	end
-	
-	setmetatable(frame, WT.UnitFrame_mt) 
-	
-	-- Manually add in the UnitFrame methods. This means that the metatable will be used to access the 
-	-- base Frame, while also having UnitFrame functionality available. 
-	--for k,v in pairs(WT.UnitFrame) do frame[k] = v end
-	
+
+	setmetatable(frame, WT.UnitFrame_mt)
+
+	-- Manually add in the UnitFrame methods. This means that the metatable will be used to access the
+	-- base Frame, while also having UnitFrame functionality available.
 	frame.UnitId = false
 	frame.UnitSpec = unitSpec
 	frame.Bindings = {}
-	frame.Elements = {}	
+	frame.Elements = {}
 	frame.Animations = {}
 	frame.Options = options or {}
 	frame.BuffAllocations = {}
 	frame.BuffData = {}
-		
+
 	frame.Elements["frame"] = frame
-		
+
 	-- Store the UnitFrame in the global list of frames
-	table.insert(WT.UnitFrames, frame)	
+	table.insert(WT.UnitFrames, frame)
 
 	if frame.Construct then frame:Construct(options) end
-	
+
 	frame:ApplyDefaultBindings()
 	
 	-- Track changes to the linked UnitId, and call into PopulateUnit	
@@ -275,12 +255,9 @@ function WT.UnitFrame:Create(unitSpec, options)
 	return frame, createOptions
 end
 
-
 function WT.UnitFrame:OnResize(width, height)
 	self:ApplyBindings()
 end
-
-
 
 function WT.UnitFrame:PopulateUnit(unitId)
 	self.UnitId = unitId
@@ -291,15 +268,16 @@ function WT.UnitFrame:PopulateUnit(unitId)
 		else
 			self:ApplyBindings()
 		end
+		WT.ShowSecureFrame(self)
 	else
 		self.Unit = nil
 		self:ApplyDefaultBindings()
+		if not WT.Gadget.isSecure then
+			WT.HideSecureFrame(self)
+		end
 	end
 	self:ApplyBuffDelta()
 end
-
-
-
 
 -- This is the default implementation of the buff filter method. It will always respond with 2, meaning normal priority.
 -- A buff filter takes buff details as a parameter, and returns a number between 0 and 4 as follows:
@@ -317,7 +295,7 @@ end
 
 -- Event Handlers --------------------------------------------------------------------------------
 
-local function OnUnitAdded(hEvent, unitId)
+local function OnUnitAddedWorker(unitId)
 	for frame in pairs(awaitingDetails) do
 		if frame.UnitId == unitId then
 			frame:PopulateUnit(frame.UnitId)
@@ -331,9 +309,12 @@ local function OnUnitAdded(hEvent, unitId)
 		end
 	end
 end
+local function OnUnitAdded(hEvent, unitId)
+	local job = coroutine.create(OnUnitAddedWorker)
+	coroutine.resume(job,unitId)
+end
 
-
-local function OnUnitPropertySet(hEvent, unit, property, newValue, oldValue)
+local function OnUnitPropertySetWorker(unit, property, newValue, oldValue)
 	-- Execute the bindings for any UnitFrame that is currently linked to this unit
 	for idx, unitFrame in ipairs(WT.UnitFrames) do
 		if unitFrame.Unit and unitFrame.Unit.id == unit.id and unitFrame.Bindings[property] then
@@ -345,36 +326,60 @@ local function OnUnitPropertySet(hEvent, unit, property, newValue, oldValue)
 		end
 	end
 end
-
-local function OnBuffUpdates(hEvent, unitId, changes)
+local function OnUnitPropertySet(hEvent, unit, property, newValue, oldValue)
+	local job = coroutine.create(OnUnitPropertySetWorker)
+	coroutine.resume(job, unit, property, newValue, oldValue)
+end
+local function OnBuffUpdatesWorker(unitId, changes)
 	for idx, unitFrame in ipairs(WT.UnitFrames) do
 		if unitFrame.Unit and unitFrame.Unit.id == unitId then
 			unitFrame:BuffHandler(changes.add, changes.remove, changes.update)
 		end
 	end
 end
-
-local function OnCastbarShow(hEvent, unitId, castbar)
+local function OnBuffUpdates(hEvent, unitId, changes)
+	local job = coroutine.create(OnBuffUpdatesWorker)
+	coroutine.resume(job, unitId, changes)
+end
+local function OnCastbarShowWorker(unitId, castbar)
 	for idx, unitFrame in ipairs(WT.UnitFrames) do
 		if unitFrame.Unit and unitFrame.UnitId == unitId and unitFrame.OnCastBegin then
 			unitFrame:OnCastBegin(castbar)
 		end
 	end
 end
-
-local function OnCastbarHide(hEvent, unitId)
+local function OnCastbarShow(hEvent, unitId, castbar)
+	local job = coroutine.create(OnCastbarShowWorker)
+	coroutine.resume(job, unitId, castbar)
+end
+local function OnCastbarHideWorker(unitId)
 	for idx, unitFrame in ipairs(WT.UnitFrames) do
 		if unitFrame.Unit and unitFrame.UnitId == unitId and unitFrame.OnCastEnd then
 			unitFrame:OnCastEnd()
 		end
 	end
 end
-
-
+local function OnCastbarHide(hEvent, unitId)
+	local job = coroutine.create(OnCastbarHideWorker)
+	coroutine.resume(job, unitId)
+end
+local function OnLocked()
+	for idx, unitFrame in ipairs(WT.UnitFrames) do
+		if unitFrame.UnitSpec then
+			WT.ShowSecureFrame(unitFrame)
+		end
+	end
+	WT.Event.Trigger.SecureLock()
+end
+local function OnUnLocked()
+	WT.Event.Trigger.SecureUnlock()
+end
 -- Register for change events from the UnitDatabase
 Command.Event.Attach(WT.Event.UnitAdded, OnUnitAdded, AddonId .. "_UnitFrame_UnitAdded" )
 Command.Event.Attach(WT.Event.UnitPropertySet, OnUnitPropertySet, AddonId .. "_UnitFrame_UnitPropertySet" )
 Command.Event.Attach(WT.Event.BuffUpdates, OnBuffUpdates, AddonId .. "_UnitFrame_BuffUpdates" )
 Command.Event.Attach(WT.Event.CastbarShow, OnCastbarShow, AddonId .. "_UnitFrame_CastbarShow" )
 Command.Event.Attach(WT.Event.CastbarHide, OnCastbarHide, AddonId .. "_UnitFrame_CastbarHide" )
+Command.Event.Attach(Event.System.Secure.Enter, OnLocked, "_UnitFrame_Onlocked")
+Command.Event.Attach(Event.System.Secure.Leave, OnUnLocked, "_UnitFrame_OnUnlocked")
 

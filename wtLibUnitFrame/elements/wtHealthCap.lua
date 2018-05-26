@@ -1,12 +1,12 @@
---[[ 
-	This file is part of Wildtide's WT Addon Framework 
+--[[
+	This file is part of Wildtide's WT Addon Framework
 	Wildtide @ Blightweald (EU) / DoomSprout @ forums.riftgame.com
 
 	WT.Bar
-	
+
 		Provides a horizontal bar element, which is used to display a bar bound to a percentage field
-		
-		*Change: The bar's mask is now contained within a Frame which is set to the element width/height. 
+
+		*Change: The bar's mask is now contained within a Frame which is set to the element width/height.
 		This allows other elements to be attached to the bar without moving around as the bar shrinks/grows.
 		Previously the bar was represented by the Mask frame itself.
 
@@ -17,14 +17,14 @@
 -- The base frame type is "Text"
 local wtHealthCap = WT.Element:Subclass("HealthCap", "Frame")
 
-wtHealthCap.ConfigDefinition = 
+wtHealthCap.ConfigDefinition =
 {
 	description = "A bar element. This must be bound to a percentage property (returns a number between 0 and 100).",
-	required = 
+	required =
 	{
 		binding = "The property to bind to. Must be a percentage property (0..100)",
 	},
-	optional = 
+	optional =
 	{
 		texAddon = "The addon ID for the addon containing the bar texture",
 		texFile = "The filename of the texture for the bar",
@@ -44,30 +44,30 @@ function wtHealthCap:Construct()
 
 	local config = self.Configuration
 	local unitFrame = self.UnitFrame
-	
+
 	self.Mask = UI.CreateFrame("Mask", "BarMask", self)
-	
+
 	if (config.width) then self:SetWidth(config.width) end
 	if (config.height) then self:SetHeight(config.height) end
 
 	self:SetGrowthDirection(config.growthDirection or "right")
 
 	self.Image = UI.CreateFrame("Texture", WT.UnitFrame.UniqueName(), self.Mask)
-	
+
 	if config.media then
 		Library.Media.SetTexture(self.Image, config.media)
 	elseif config.texAddon and config.texFile then
 		self.Image:SetTexture(config.texAddon, config.texFile)
 	end
-	
+
 	self.Image:SetPoint("TOPLEFT", self, "TOPLEFT")
 	self.Image:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT")
-	
-	local a = self.Mask:GetWidth() 	
-	local b = self.Mask:GetHeight() 
-	
+
+	local a = self.Mask:GetWidth()
+	local b = self.Mask:GetHeight()
+
 	unitFrame:CreateBinding(config.binding, self, self.BindPercent, 0)
-		
+
 	if config.colorBinding then
 		self.UnitFrame:CreateBinding(config.colorBinding, self, self.BindColor, nil)
 	end
@@ -79,40 +79,39 @@ function wtHealthCap:Construct()
 	if config.backgroundColor then
 		self:SetBackgroundColor(config.backgroundColor.r or 0, config.backgroundColor.g or 0, config.backgroundColor.b or 0, config.backgroundColor.a or 1)
 	end
-	
-------------------------Add debuffmarker-----------------------------------------------------
+
+	--Add debuffmarker
 	local unitFrame2 = self.Mask
-        local nameBase = unitFrame2:GetName()
-		local parent = unitFrame2:GetParent()
-		local unitFrameLayer = unitFrame2:GetLayer()
-	    self.width = width or 0
-	    self.position = "inside"
-		local width = self.width 	  	
-  
-  if not config.rightBorder == true then
-	  self.left = UI.CreateFrame("Texture", nameBase .."_LeftBorder", parent)
-      self.left:SetLayer(100)
-      self.left:ClearAll()
-      self.left:SetPoint("TOPRIGHT", unitFrame2, "TOPLEFT", 0, -a)
-      self.left:SetPoint("BOTTOMRIGHT", unitFrame2, "BOTTOMLEFT", 8, a)
-	  self.left:SetTexture("Rift","raid_healthbar_debuffmarker.png.dds")
-	  self.left:SetVisible(true)
-	  self.left:SetParent(self.Mask)
-	 else
-	  self.right = UI.CreateFrame("Texture", nameBase .."_RightBorder", parent)
-      self.right:SetLayer(100)
-      self.right:ClearAll()
-	  self.right:SetPoint("TOPLEFT", unitFrame2, "TOPRIGHT", 0, -a)
-      self.right:SetPoint("BOTTOMLEFT", unitFrame2, "BOTTOMRIGHT", -8, a)
-	  self.right:SetTexture("Rift","raid_healthbar_debuffmarker.png.dds")
-	  self.right:SetVisible(true)
-	  self.right:SetParent(self.Mask)
-	end	 
-  -------------------------------------------------------------------------------------------------------
+	local nameBase = unitFrame2:GetName()
+	local parent = unitFrame2:GetParent()
+	local unitFrameLayer = unitFrame2:GetLayer()
+	self.width = width or 0
+	self.position = "inside"
+	local width = self.width
+
+	if not config.rightBorder == true then
+		self.left = UI.CreateFrame("Texture", nameBase .."_LeftBorder", parent)
+		self.left:SetLayer(100)
+		self.left:ClearAll()
+		self.left:SetPoint("TOPRIGHT", unitFrame2, "TOPLEFT", 0, -a)
+		self.left:SetPoint("BOTTOMRIGHT", unitFrame2, "BOTTOMLEFT", 8, a)
+		self.left:SetTexture("Rift","raid_healthbar_debuffmarker.png.dds")
+		self.left:SetVisible(true)
+		self.left:SetParent(self.Mask)
+	else
+		self.right = UI.CreateFrame("Texture", nameBase .."_RightBorder", parent)
+		self.right:SetLayer(100)
+		self.right:ClearAll()
+		self.right:SetPoint("TOPLEFT", unitFrame2, "TOPRIGHT", 0, -a)
+		self.right:SetPoint("BOTTOMLEFT", unitFrame2, "BOTTOMRIGHT", -8, a)
+		self.right:SetTexture("Rift","raid_healthbar_debuffmarker.png.dds")
+		self.right:SetVisible(true)
+		self.right:SetParent(self.Mask)
+	end
 end
 
 function wtHealthCap:BindPercent(percentage)
-	if (self.growthDirection == "up") or (self.growthDirection == "down") then 
+	if (self.growthDirection == "up") or (self.growthDirection == "down") then
 		self.Mask:SetHeight((percentage / 100) * self:GetHeight())
 	else
 		self.Mask:SetWidth((percentage / 100) * self:GetWidth())
@@ -127,24 +126,19 @@ function wtHealthCap:BindColor(color)
 	end
 end
 
-
 function wtHealthCap:SetBarColor(r,g,b,a)
 	self.Image:SetBackgroundColor(r or 0, g or 0, b or 0, a or 1)
 end
-
 
 function wtHealthCap:SetBarMedia(mediaId)
 	Library.Media.SetTexture(self.Image, mediaId)
 end
 
-
 function wtHealthCap:SetBarTexture(texAddon, texFile)
 	self.Image:SetTexture(texAddon, texFile)
 end
 
-
 function wtHealthCap:SetGrowthDirection(direction)
-
 	self.growthDirection = direction or "right"
 	self.Mask:ClearAll()
 
@@ -165,5 +159,4 @@ function wtHealthCap:SetGrowthDirection(direction)
 		self.Mask:SetPoint("BOTTOM", self, "BOTTOM")
 		self.Mask:SetWidth(self:GetWidth())
 	end
-	
-end	
+end

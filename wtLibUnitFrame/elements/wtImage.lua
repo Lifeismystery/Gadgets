@@ -1,10 +1,10 @@
---[[ 
-	This file is part of Wildtide's WT Addon Framework 
+--[[
+	This file is part of Wildtide's WT Addon Framework
 	Wildtide @ Blightweald (EU) / DoomSprout @ forums.riftgame.com
 
 	Image
-	
-		Provides an image element, used for displaying a single static image (texture)	
+
+		Provides an image element, used for displaying a single static image (texture)
 --]]
 
 -- Create the class.
@@ -12,12 +12,10 @@ local wtImage = WT.Element:Subclass("Image", "Texture")
 
 function wtImage:Construct()
 	-- self is a Texture
-
 	local config = self.Configuration
 	local unitFrame = self.UnitFrame
 
 	-- Validate the configuration
-	
 	if config.media then
 		Library.Media.SetTexture(self, config.media)
 	else
@@ -32,5 +30,16 @@ function wtImage:Construct()
 	if config.color then 
 		self:SetBackgroundColor(config.color.r or 0, config.color.g or 0, config.color.b or 0, config.color.a or 1) 
 	end
-
+	if config.ImageTextureBinding then
+		self.UnitFrame:CreateBinding(config.ImageTextureBinding, self, self.BindImageTexture, nil)
+	end
+end
+function wtImage:BindImageTexture(ImageTexture)
+    if ImageTexture then
+		if ImageTexture.media then
+			Library.Media.SetTexture(self, ImageTexture.media)
+		elseif ImageTexture.texAddon and ImageTexture.texFile then
+			self:SetTexture(ImageTexture.texAddon, ImageTexture.texFile)
+		end
+	end	
 end

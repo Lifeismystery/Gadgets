@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.4.8
       Project Date (UTC)  : 2013-07-04T23:34:42Z
       File Modified (UTC) : 2013-05-20T07:13:55Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
@@ -22,14 +22,14 @@ function WT.UnitFrame.MACRO_LINE(unitSpec, ln)
 	return ln:gsub("@unit", "@" .. unitSpec) .. "\n"
 end
 
-local function buildMacro(frame, macroText)	
+local function buildMacro(frame, macroText)
 	-- First, split the macro into individual lines
 	local lines = {}
 	(macroText .. "\n"):gsub('\r', '\n'):gsub("(.-)\r?\n", function(ln) if ln ~= "" then table.insert(lines, ln) end end)
-	
+
 	-- If the macro is empty, return nil
-	if #lines == 0 then 
-		return nil 
+	if #lines == 0 then
+		return nil
 	end
 
 	if lines[1]:gsub('\n','') == "menu" then
@@ -47,9 +47,9 @@ local function buildMacro(frame, macroText)
 			macroFunction = macroFunction .. line:sub(2) .. "\n"
 		else
 			macroFunction = macroFunction .. "MACRO = MACRO .. MACRO_LINE(unit, \"" .. trim(line) .. "\")\n"
-		end	
+		end
 	end
-	
+
 	macroFunction = macroFunction .. "return MACRO\n"
 	return loadstring(macroFunction)
 end
@@ -73,12 +73,12 @@ function WT.UnitFrame:SetLeftMacro(macroText)
 		Command.Console.Display("general", true, "ERROR IN LEFT BUTTON MACRO DEFINITION", false)
 	end
 	self._MACRO.LeftDown = fn
-	if fn == "menu" then 
+	if fn == "menu" then
 		self.Event.LeftDown = function() if self.UnitId then Command.Unit.Menu(self.UnitId) end end
-	elseif fn then 
-		self.Event.LeftDown = fn() 
-	else 
-		self.Event.LeftDown = nil 
+	elseif fn then
+		self.Event.LeftDown = fn()
+	else
+		self.Event.LeftDown = nil
 	end
 end
 
@@ -91,10 +91,10 @@ function WT.UnitFrame:SetRightMacro(macroText)
 	self._MACRO.RightDown = fn
 	if fn == "menu" then
 		self.Event.RightDown = function() if self.UnitId then Command.Unit.Menu(self.UnitId) end end
-	elseif fn then 
-		self.Event.RightDown = fn() 
-	else 
-		self.Event.RightDown = nil 
+	elseif fn then
+		self.Event.RightDown = fn()
+	else
+		self.Event.RightDown = nil
 	end
 end
 
@@ -105,12 +105,12 @@ function WT.UnitFrame:SetMiddleMacro(macroText)
 		Command.Console.Display("general", true, "ERROR IN MIDDLE BUTTON MACRO DEFINITION", false)
 	end
 	self._MACRO.MiddleDown = fn
-	if fn == "menu" then 
+	if fn == "menu" then
 		self.Event.MiddleDown = function() if self.UnitId then Command.Unit.Menu(self.UnitId) end end
-	elseif fn then 
-		self.Event.MiddleDown = fn() 
-	else 
-		self.Event.MiddleDown = nil 
+	elseif fn then
+		self.Event.MiddleDown = fn()
+	else
+		self.Event.MiddleDown = nil
 	end
 end
 
@@ -121,12 +121,12 @@ function WT.UnitFrame:SetMouse4Macro(macroText)
 		Command.Console.Display("general", true, "ERROR IN BUTTON 4 MACRO DEFINITION", false)
 	end
 	self._MACRO.Mouse4Down = fn
-	if fn == "menu" then 
+	if fn == "menu" then
 		self.Event.Mouse4Down = function() if self.UnitId then Command.Unit.Menu(self.UnitId) end end
-	elseif fn then 
-		self.Event.Mouse4Down = fn() 
-	else 
-		self.Event.Mouse4Down = nil 
+	elseif fn then
+		self.Event.Mouse4Down = fn()
+	else
+		self.Event.Mouse4Down = nil
 	end
 end
 
@@ -137,12 +137,12 @@ function WT.UnitFrame:SetMouse5Macro(macroText)
 		Command.Console.Display("general", true, "ERROR IN BUTTON 5 MACRO DEFINITION", false)
 	end
 	self._MACRO.Mouse5Down = fn
-	if fn == "menu" then 
+	if fn == "menu" then
 		self.Event.Mouse5Down = function() if self.UnitId then Command.Unit.Menu(self.UnitId) end end
-	elseif fn then 
-		self.Event.Mouse5Down = fn() 
-	else 
-		self.Event.Mouse5Down = nil 
+	elseif fn then
+		self.Event.Mouse5Down = fn()
+	else
+		self.Event.Mouse5Down = nil
 	end
 end
 
@@ -153,12 +153,12 @@ function WT.UnitFrame:SetWheelForwardMacro(macroText)
 		Command.Console.Display("general", true, "ERROR IN WHEEL FORWARD MACRO DEFINITION", false)
 	end
 	self._MACRO.WheelForward = fn
-	if fn == "menu" then 
+	if fn == "menu" then
 		self.Event.WheelForward = function() if self.UnitId then Command.Unit.Menu(self.UnitId) end end
-	elseif fn then 
-		self.Event.WheelForward = fn() 
-	else 
-		self.Event.WheelForward = nil 
+	elseif fn then
+		self.Event.WheelForward = fn()
+	else
+		self.Event.WheelForward = nil
 	end
 end
 
@@ -169,12 +169,12 @@ function WT.UnitFrame:SetWheelBackMacro(macroText)
 		Command.Console.Display("general", true, "ERROR IN WHEEL BACK MACRO DEFINITION", false)
 	end
 	self._MACRO.WheelBack = fn
-	if fn == "menu" then 
+	if fn == "menu" then
 		self.Event.WheelBack = function() if self.UnitId then Command.Unit.Menu(self.UnitId) end end
-	elseif fn then 
-		self.Event.WheelBack = fn() 
-	else 
-		self.Event.WheelBack = nil 
+	elseif fn then
+		self.Event.WheelBack = fn()
+	else
+		self.Event.WheelBack = nil
 	end
 end
 

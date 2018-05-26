@@ -17,27 +17,24 @@ GJK.AbilityNames = {
 	["Toxin"] = true,
 	["Sapping Cold"] = true,
 	["The Contained Depths"] = true,
-	["Unbounded Consciousness"] = true,	
-	["Absolute Zero"] = true,	
-	["Conduit of Martrodraum"] = true,	
-	["Akvan Parasite"] = true,		
-	["Overcharged"] = true,	
-	["Tow Cable"] = true,	
+	["Unbounded Consciousness"] = true,
+	["Absolute Zero"] = true,
+	["Conduit of Martrodraum"] = true,
+	["Akvan Parasite"] = true,
+	["Overcharged"] = true,
+	["Tow Cable"] = true,
 	["Demonic Leash"] = true,
-    ["Soul Siphon"] = true,	
+    ["Soul Siphon"] = true,
 	["Ancient Flames"] = true,
 	["Lightning Rod"] = true,
 	["Soul Purification"] = true,
 	["Gaze of Akylios"] = true,
-	["Abyssal Torrent"] = true,	
+	["Abyssal Torrent"] = true,
 	["Explosive Venom"] = true,
 	["Curse of Greed"] = true,
-	["The Point Protection"] = true,	
-	["Protection of Dance"] = true,		
---[""] = true,	
---	,
+	["The Point Protection"] = true,
+	["Protection of Dance"] = true,
 }
-
 
 if WT.Unit.VirtualProperties["alertHealthColor"] ~= nil then
 	WT.Unit.VirtualProperties["alertHealthColor"] = nil
@@ -62,12 +59,12 @@ WT.Unit.CreateVirtualProperty("alertHealthColor", { "id", "cleansable", "buffAle
 			if wtxGadgets.RaidFrames1 then
 			if wtxGadgets.RaidFrames1.colHealth and wtxGadgets.RaidFrames1.ovHealthColor then
 				return {r=wtxGadgets.RaidFrames1.colHealth[1],g=wtxGadgets.RaidFrames1.colHealth[2],b=wtxGadgets.RaidFrames1.colHealth[3],a=wtxGadgets.RaidFrames1.colHealth[4]}
-			else 
+			else
 				return  { r=0.07, g=0.07, b=0.07, a=0.85} end
-				
-			else 
-			return  { r=0.07, g=0.07, b=0.07, a=0.85} end	
-		end	
+
+			else
+			return  { r=0.07, g=0.07, b=0.07, a=0.85} end
+		end
 	end
 )
 
@@ -95,10 +92,10 @@ WT.Unit.CreateVirtualProperty("alertHealthColor2", { "id", "cleansable", "buffAl
 			if wtxGadgets.RaidFrames1 then
 			if wtxGadgets.RaidFrames1.colHealth and wtxGadgets.RaidFrames1.ovHealthColor then
 				return {r=wtxGadgets.RaidFrames1.colHealth[1],g=wtxGadgets.RaidFrames1.colHealth[2],b=wtxGadgets.RaidFrames1.colHealth[3],a=wtxGadgets.RaidFrames1.colHealth[4]}
-			else 
+			else
 				return  {r=0.22,g=0.55,b=0.06, a=0.85}  end
-			else 
-			return  {r=0.22,g=0.55,b=0.06, a=0.85}  end	
+			else
+			return  {r=0.22,g=0.55,b=0.06, a=0.85}  end
 		end
 	end
 )

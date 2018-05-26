@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.9.4-beta
       Project Date (UTC)  : 2015-07-13T16:47:34Z
       File Modified (UTC) : 2013-09-14T11:00:28Z (Adelea)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
@@ -35,7 +35,7 @@ local function btnDragStart()
 	btnStartY = btnGadget:GetTop()
 	btnMouseStartX = mouse.x
 	btnMouseStartY = mouse.y
-	btnDragged = false	
+	btnDragged = false
 end
 
 local draggedEnough = false
@@ -58,7 +58,7 @@ local function btnDragMove()
 		btnGadget:SetPoint("TOPLEFT", UIParent, "TOPLEFT", x, y)
 		wtxOptions.btnGadgetX = x
 		wtxOptions.btnGadgetY = y
-		btnDragged = true	
+		btnDragged = true
 	end
 end
 
@@ -80,7 +80,7 @@ local menuItemsAdd = 1
 local menuItemsToggleLock = 2
 local menuItemsSettings = 3
 local menuItemsImport = 4
-menuItems[menuItemsAdd] = {text=TXT.AddGadget, value=function() WT.Gadget.ShowCreationUI() end } 
+menuItems[menuItemsAdd] = {text=TXT.AddGadget, value=function() WT.Gadget.ShowCreationUI() end }
 menuItems[menuItemsToggleLock] = {text=TXT.UnlockGadgets, value=function() WT.Gadget.ToggleAll() end }
 menuItems[menuItemsSettings] = {text=TXT.Settings, value=function() WT.Gadget.ShowSettings() end }
 menuItems[menuItemsImport] = {text="Import Layout", value=function() WT.Gadget.ShowImportDialog() end }
@@ -89,7 +89,6 @@ local btnMenu = WT.Control.Menu.Create(btnGadget, menuItems)
 btnMenu:SetPoint("TOPRIGHT", btnGadget, "CENTER")
 
 -- 2012/10/05 - Start Adelea's change to improve Menu popup location
-
 local btnMenu_Anchor = "TOPRIGHT"
 
 local function btnShowMenu()
@@ -97,19 +96,19 @@ local function btnShowMenu()
 	local sx = UIParent:GetWidth()/2
 	local sy = UIParent:GetHeight()/2
 	local anchor
-	
+
 	if md.y > sy then
 		anchor = "BOTTOM"
 	else
 		anchor = "TOP"
 	end
-	
+
 	if md.x <= sx then
 		anchor = anchor.."LEFT"
 	else
 		anchor = anchor.."RIGHT"
 	end
-	
+
 	if anchor ~= btnMenu_anchor then
 		btnMenu:ClearPoint(btnMenu_Anchor)
 		btnMenu_Anchor = anchor
@@ -117,10 +116,7 @@ local function btnShowMenu()
 	end
 	btnMenu:Toggle()
 end
-
 -- 2012/10/05 - End Adelea's change to improve Menu popup location
-
-
 
 function btnMenu:OnOpen()
 	if dockerIntegration then
@@ -133,7 +129,6 @@ function btnMenu:OnClose()
 		MINIMAPDOCKER.AUTOHIDE_DOCKED = true
 	end
 end
-
 
 btnGadget:EventAttach(Event.UI.Input.Mouse.Left.Down, function(self, h)
 	btnDragStart()
@@ -151,7 +146,6 @@ btnGadget:EventAttach(Event.UI.Input.Mouse.Right.Click, function(self, h)
 	btnShowMenu()
 end, "Event.UI.Input.Mouse.Right.Click")
 
-
 -- API METHODS
 
 function WT.Gadget.ResetButton()
@@ -163,10 +157,7 @@ function WT.Gadget.ResetButton()
 	wtxOptions.btnGadgetY = btnGadget:GetTop()
 end
 
-
-
 local function Initialize()
-
 	-- Docker integration
 	if MINIMAPDOCKER then
 		dockerIntegration = true
@@ -181,22 +172,21 @@ local function Initialize()
 	end
 end
 
-
 -- Register an initializer to handle loading of gadgets
 table.insert(WT.Initializers, Initialize)
 
-Command.Event.Attach(WT.Event.GadgetsLocked, 
+Command.Event.Attach(WT.Event.GadgetsLocked,
 	function()
 		menuItems[menuItemsToggleLock].text = TXT.UnlockGadgets
 		btnMenu:SetItems(menuItems)
-	end, 
+	end,
 	AddonId .. "_GadgetsLocked"
 )
 
-Command.Event.Attach(WT.Event.GadgetsUnlocked, 
+Command.Event.Attach(WT.Event.GadgetsUnlocked,
 	function()
 		menuItems[menuItemsToggleLock].text = TXT.LockGadgets
 		btnMenu:SetItems(menuItems)
-	end, 
+	end,
 	AddonId .. "_GadgetsUnlocked"
 )

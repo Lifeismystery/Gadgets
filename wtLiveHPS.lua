@@ -8,12 +8,10 @@ local AddonId = toc.identifier
 local TXT=Library.Translate
 
 -- wtFPSGadget creates a really simple "HPS" gadget for displaying Live Heal Per Second
-
 local gadgetIndex = 0
 local dpsGadgets = {}
 
 local function Create(configuration)
-
 	local wrapper = UI.CreateFrame("Frame", WT.UniqueName("wtHPS"), WT.Context)
 	wrapper:SetWidth(150)
 	wrapper:SetHeight(52)
@@ -32,14 +30,13 @@ local function Create(configuration)
 	dpsFrame:SetPoint("TOPCENTER", dpsHeading, "BOTTOMCENTER", 0, -5)
 
 	table.insert(dpsGadgets, dpsFrame)
-	return wrapper, { resizable={150, 52, 150, 70} }
-	
-end
 
+	return wrapper, { resizable={150, 52, 150, 70} }
+end
 
 local dialog = false
 
-local function ConfigDialog(container)	
+local function ConfigDialog(container)
 	dialog = WT.Dialog(container)
 		:Label("This gadget displays a live measure of the player's HPS")
 end
@@ -52,7 +49,6 @@ local function SetConfiguration(config)
 	dialog:SetValues(config)
 end
 
-
 WT.Gadget.RegisterFactory("HPS",
 	{
 		name="HPS:Live",
@@ -60,11 +56,11 @@ WT.Gadget.RegisterFactory("HPS",
 		author="Wildtide",
 		version="1.0.0",
 		iconTexAddon=AddonId,
-		iconTexFile="img/wtDPS.png",
+		iconTexFile="img/menuIcons/wtDPS.png",
 		["Create"] = Create,
 		["ConfigDialog"] = ConfigDialog,
-		["GetConfiguration"] = GetConfiguration, 
-		["SetConfiguration"] = SetConfiguration, 
+		["GetConfiguration"] = GetConfiguration,
+		["SetConfiguration"] = SetConfiguration,
 	})
 
 
@@ -103,11 +99,9 @@ local function OnTick(hEvent)
 	end
 end
 
-
 local function OnDamage(hEvent, info)
-
 	if not info.damage then return end
-	
+
 	if info.caster == WT.Player.id then
 		dmgAccum = dmgAccum + info.damage
 	else
@@ -116,11 +110,9 @@ local function OnDamage(hEvent, info)
 			dmgAccum = dmgAccum + info.damage
 		end
 	end
-	
 end
 
 local function OnHeal(hEvent, info)
-
 	if not info.heal then return end
 
 	if info.caster == WT.Player.id then
@@ -134,6 +126,6 @@ local function OnHeal(hEvent, info)
 	
 end
 
-Command.Event.Attach(Event.System.Update.Begin, OnTick, "OnTick")
+Command.Event.Attach(WT.Event.Tick, OnTick, "OnTick")
 Command.Event.Attach(Event.Combat.Damage, OnDamage, "OnDamage")
 Command.Event.Attach(Event.Combat.Heal, OnHeal, "OnHeal")

@@ -2,12 +2,12 @@
                                  GX LIBRARY
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.9.4-beta
       Project Date (UTC)  : 2015-07-13T16:47:34Z
       File Modified (UTC) : 2013-05-21T15:53:02Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 --[[
@@ -44,7 +44,6 @@ local function ColorString(col)
 		g = tonumber(col:sub(5,6), 16) / 255,
 		b = tonumber(col:sub(7,8), 16) / 255,
 	}
-	
 end
 
 -- Colours are defined as tables { r, g, b, a }

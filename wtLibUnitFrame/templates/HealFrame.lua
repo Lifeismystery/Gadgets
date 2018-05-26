@@ -1,7 +1,7 @@
 local toc, data = ...
 local AddonId = toc.identifier
 
--- Frame Configuration Options --------------------------------------------------
+--Frame Configuration Options
 local HealFrame = WT.UnitFrame:Template("Heal Frame")
 HealFrame.Configuration.Name = "Heal Frame"
 HealFrame.Configuration.RaidSuitable = true
@@ -11,48 +11,44 @@ HealFrame.Configuration.Width = 90
 HealFrame.Configuration.Height = 40
 HealFrame.Configuration.Resizable = { 55, 40, 500, 70 }
 HealFrame.Configuration.SupportsHoTPanel = true
--- HealFrame.Configuration.SupportsHoTTracking = true
-
----------------------------------------------------------------------------------
 
 function HealFrame:Construct(options)
-
 	local template =
 	{
-		elements = 
+		elements =
 		{
 			{
 				-- Generic Element Configuration
 				id="outerBorder", type="Frame", parent="frame", layer=0, alpha=1,
-				attach = 
-				{ 
+				attach =
+				{
 					{ point="TOPLEFT", element="frame", targetPoint="TOPLEFT", offsetX=0, offsetY=0, },
-					{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT", offsetX=0, offsetY=0, } 
-				}, 				
+					{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT", offsetX=0, offsetY=0, }
+				},
 				visibilityBinding="id",
 				color={r=0,g=0,b=0,a=1}, colorBinding="gridBorderColor",
-			}, 
+			},
 			{
 				-- Generic Element Configuration
 				id="frameBackdrop", type="Frame", parent="frame", layer=1, alpha=1,
-				attach = 
-				{ 
+				attach =
+				{
 					{ point="TOPLEFT", element="frame", targetPoint="TOPLEFT", offsetX=1, offsetY=1, },
-					{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT", offsetX=-1, offsetY=-1, } 
-				}, 				
+					{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT", offsetX=-1, offsetY=-1, }
+				},
 				visibilityBinding="id",
 				color={r=0,g=0,b=0,a=1}, colorBinding="aggroColor",
-			}, 
+			},
 			{
 				-- Generic Element Configuration
 				id="frameBlocked", type="Frame", parent="frameBackdrop", layer=15, visibilityBinding="blockedOrOutOfRange",
 				color={r=0,g=0,b=0},alpha=0.6,
-				attach = 
-				{ 
+				attach =
+				{
 					{ point="TOPLEFT", element="frame", targetPoint="TOPLEFT", offsetX=1, offsetY=1 },
-					{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT", offsetX=-1, offsetY=-1 } 
+					{ point="BOTTOMRIGHT", element="frame", targetPoint="BOTTOMRIGHT", offsetX=-1, offsetY=-1 }
 				},
-			}, 
+			},
 			{
 				-- Generic Element Configuration
 				id="barResource", type="Bar", parent="frameBackdrop", layer=10,
@@ -74,7 +70,7 @@ function HealFrame:Construct(options)
 					{ point="BOTTOMRIGHT", element="barResource", targetPoint="TOPRIGHT", offsetX=0, offsetY=0 },
 				},
 				growthDirection="right",
-				binding="healthPercent", 
+				binding="healthPercent",
 				colorBinding="raidHealthColor",
 				media="wtHealbot",
 				backgroundColor={r=0, g=0, b=0, a=1},
@@ -90,7 +86,7 @@ function HealFrame:Construct(options)
 				binding="healthCapPercent",
 				texAddon="Rift", texFile="raid_healthbar_red.png.dds",
 				color={r=0.5, g=0, b=0, a=0.8},
-			},	
+			},
 			{
 				id="barAbsorb", type="Bar", parent="frameBackdrop", layer=11,
 				attach = {
@@ -99,16 +95,16 @@ function HealFrame:Construct(options)
 				},
 				growthDirection="right",
 				binding="absorbPercent", color={r=0,g=1,b=1,a=1},
-				media="wtBantoBar", 
+				media="wtBantoBar",
 				backgroundColor={r=0, g=0, b=0, a=0},
 			},
 			{
 				id="imgRole", type="MediaSet", parent="frameBackdrop", layer=20,
-				attach = {{ point="CENTER", element="barHealth", targetPoint="TOPLEFT", offsetX=2, offsetY=2 }}, 
+				attach = {{ point="CENTER", element="barHealth", targetPoint="TOPLEFT", offsetX=2, offsetY=2 }},
 				visibilityBinding="role",
-				nameBinding="role", 
+				nameBinding="role",
 				names = { ["tank"] = "octanusTank", ["heal"] = "octanusHeal", ["dps"] = "octanusDPS", ["support"] = "octanusSupport" },
-			},		
+			},
 			{
 				-- Generic Element Configuration
 				id="labelName", type="Label", parent="frameBackdrop", layer=20,
@@ -129,7 +125,7 @@ function HealFrame:Construct(options)
 			    attach = {{ point="TOPRIGHT", element="frameBackdrop", targetPoint="TOPRIGHT", offsetX=-3, offsetY=4 }},
 			    width = 12, height = 12,
 			    nameBinding="mark",
-			    names = 
+			    names =
 			    {
 			        ["1"] = "riftMark01_mini",
 			        ["2"] = "riftMark02_mini",
@@ -169,7 +165,7 @@ function HealFrame:Construct(options)
 			    attach = {{ point="CENTERRIGHT", element="imgMark", targetPoint="CENTERRIGHT", offsetX=7, offsetY=0 }},
 			    width = 12, height = 12,
 			    nameBinding="mark",
-			    names = 
+			    names =
 			    {
 			        ["19"] = "riftMark02_mini",
 			        ["20"] = "riftMark03_mini",
@@ -179,13 +175,13 @@ function HealFrame:Construct(options)
 			        ["29"] = "riftMark04_mini",
 			    },
 			    visibilityBinding="mark",alpha=1.0,
-			},			
+			},
 			{
 				-- Generic Element Configuration
 				id="imgReady", type="ImageSet", parent="frameBackdrop", layer=30,
 				attach = {{ point="CENTER", element="frame", targetPoint="CENTER" }}, -- visibilityBinding="id",
 				-- Type Specific Element Configuration
-				texAddon=AddonId, texFile="img/wtReady.png", nameBinding="readyStatus", cols=1, rows=2, 
+				texAddon=AddonId, texFile="img/wtReady.png", nameBinding="readyStatus", cols=1, rows=2,
 				names = { ["ready"] = 0, ["notready"] = 1 }, defaultIndex = "hide"
 			},
 			{
@@ -195,7 +191,7 @@ function HealFrame:Construct(options)
 				--visibilityBinding="id",
 				-- Type Specific Element Configuration
 				rows=1, cols=3, iconSize=16, iconSpacing=1, borderThickness=1,
-				auraType="debuff", 
+				auraType="debuff",
 				rejectBuffs= options.BlackListDebuff,
 				acceptBuffs = options.WhiteListDebuff,
 				growthDirection = "left_up"
@@ -205,7 +201,7 @@ function HealFrame:Construct(options)
 				id="buffPanelHoTs", type="BuffPanel", semantic="HoTPanel", parent="frameBackdrop", layer=30,
 				attach = {{ point="TOPRIGHT", element="frameBackdrop", targetPoint="TOPRIGHT", offsetX=-1, offsetY=1 }},
 				rows=1, cols=6, iconSize=14, iconSpacing=0, borderThickness=1,
-				auraType="hot",selfCast=true, 
+				auraType="hot",selfCast=true,
 				rejectBuffs= options.BlackListHots,
 				acceptBuffs = options.WhiteListHots,
 				growthDirection = "left_up",
@@ -225,7 +221,7 @@ function HealFrame:Construct(options)
 			self:CreateElement(element)
 		end
 	end
-	
+
 	self:EventAttach(
 		Event.UI.Layout.Size,
 		function(el)
@@ -241,7 +237,7 @@ function HealFrame:Construct(options)
 			labName:SetFontSize(newFontSize)
 		end,
 		"LayoutSize")
-	
+
 	self:SetSecureMode("restricted")
 	self:SetMouseoverUnit(self.UnitSpec)
 	self:SetMouseMasking("limited")
@@ -253,7 +249,6 @@ function HealFrame:Construct(options)
 			if self.UnitId then Command.Unit.Menu(self.UnitId) end
 		end, "Event.UI.Input.Mouse.Right.Click")
 	end
-
 end
 
 WT.Unit.CreateVirtualProperty("gridBorderColor", { "playerTarget" },
@@ -273,4 +268,3 @@ WT.Unit.CreateVirtualProperty("raidHealthColor", { "id", "cleansable" },
 			return { r=0, g=0.5, b=0, a=1 }
 		end
 	end)
-	

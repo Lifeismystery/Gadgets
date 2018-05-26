@@ -39,7 +39,6 @@ end
 
 -- Actually creates the unit frame instance, giving it the specified id
 function WT.UnitFrameTemplate:Create(unitSpec, options)
-
 	local uf = WT.UnitFrame:Create(unitSpec, options)
 
 	for idx,element in ipairs(self.elements) do

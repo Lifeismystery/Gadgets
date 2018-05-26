@@ -2,12 +2,12 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.9.4-beta
       Project Date (UTC)  : 2015-07-13T16:47:34Z
       File Modified (UTC) : 2013-06-11T06:19:15Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 
 	Usage:
 
@@ -88,24 +88,28 @@ function translate.En(tbl)
 		translate.Set("en", id, text)
 	end
 end
+
 function translate.De(tbl)
 	if not tbl then return end
 	for id, text in pairs(tbl) do
 		translate.Set("de", id, text)
 	end
 end
+
 function translate.Fr(tbl)
 	if not tbl then return end
 	for id, text in pairs(tbl) do
 		translate.Set("fr", id, text)
 	end
 end
+
 function translate.Ko(tbl)
 	if not tbl then return end
 	for id, text in pairs(tbl) do
 		translate.Set("ko", id, text)
 	end
 end
+
 function translate.Ru(tbl)
 	if not tbl then return end
 	for id, text in pairs(tbl) do

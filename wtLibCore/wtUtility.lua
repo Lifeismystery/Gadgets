@@ -2,18 +2,17 @@
                                 G A D G E T S
       -----------------------------------------------------------------
                             wildtide@wildtide.net
-                           DoomSprout: Rift Forums 
+                           DoomSprout: Rift Forums
       -----------------------------------------------------------------
       Gadgets Framework   : v0.9.4-beta
       Project Date (UTC)  : 2015-07-13T16:47:34Z
       File Modified (UTC) : 2014-06-23T17:36:15Z (Wildtide)
-      -----------------------------------------------------------------     
+      -----------------------------------------------------------------
 --]]
 
 local toc, data = ...
 local AddonId = toc.identifier
 local TXT = Library.Translate
-
 
 -- UTILITY FUNCTIONS
 -------------------------------------------------------------------------------
@@ -61,7 +60,7 @@ end
 
 function WT.Utility.NumberComma(amount)
   local formatted = amount
-  while true do  
+  while true do
     formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
     if (k==0) then
       break
@@ -84,7 +83,7 @@ function WT.Utility.DeAnchor(frame)
 	local top = frame:GetTop()
 	local width = frame:GetWidth()
 	local height = frame:GetHeight()
-	
+
 	frame:ClearAll()
 	frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", left, top)
 	frame:SetWidth(width)
@@ -97,10 +96,10 @@ function WT.Utility.ClearKeyFocus(frame)
 		frame:SetKeyFocus(false)
 		return
 	end
-	for child in pairs(frame:GetChildren()) do WT.Utility.ClearKeyFocus(child) end
-
+	for child in pairs(frame:GetChildren()) do
+		WT.Utility.ClearKeyFocus(child)
+	end
 end
-
 
 function string.wtSplit(str, delim, maxNb)
     -- Eliminate bad cases...
@@ -149,7 +148,6 @@ function WT.ShowSecureFrame(frame)
 	end
 end
 
-
 function WT.HideSecureFrame(frame)
 
 	if not frame:GetSecureMode() then
@@ -165,17 +163,14 @@ function WT.HideSecureFrame(frame)
 	end
 end
 
-
 function WT.SecureFunction(fn)
-    
+
     if not Inspect.System.Secure() then
         fn()
     else
         table.insert(pendingFunctions, fn)
     end
-    
 end
-
 
 local function OnSecureEnter(hEvent)
 end
@@ -190,12 +185,12 @@ local function OnSecureLeave(hEvent)
 		end
 		pendingVisibility[frame] = nil
 	end
-	
+
 	for _, fn in ipairs(pendingFunctions) do
 	    fn()
 	end
 	pendingFunctions = {}
-end 
+end
 
 Command.Event.Attach(Event.System.Secure.Enter, OnSecureEnter, "OnSecureEnter")
 Command.Event.Attach(Event.System.Secure.Leave, OnSecureLeave, "OnSecureLeave")
